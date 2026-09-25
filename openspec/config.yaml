@@ -1,0 +1,53 @@
+schema: spec-driven
+
+context: |
+  Project: Porto Seguro Pet
+
+  Domain:
+    Sistema de gerenciamento para uma ONG de proteção animal.
+    O sistema acompanha o ciclo de atendimento dos animais,
+    desde o resgate até a adoção e o acompanhamento pós-adoção,
+    além de apoiar a gestão de tutores/adotantes, voluntários,
+    doadores e suprimentos.
+
+  Architecture:
+    Frontend: Reflex.
+    Backend: Xano.
+
+  Development:
+    O projeto será desenvolvido incrementalmente utilizando OpenSpec.
+    Mudanças relevantes devem ser especificadas antes da implementação.
+
+  Project principles:
+    Manter a solução simples e enxuta, evitando funcionalidades
+    desnecessárias.
+    Respeitar as regras de negócio e o escopo definidos na documentação.
+
+  Language:
+    Escrever a documentação e os artefatos OpenSpec em português brasileiro.
+
+rules:
+  proposal:
+    - Descrever claramente o problema, objetivo e escopo da mudança.
+    - Identificar o que está fora do escopo quando necessário.
+    - Não propor funcionalidades fora da documentação do projeto.
+
+  specs:
+    - Escrever requisitos claros e verificáveis.
+    - Utilizar cenários para comportamentos relevantes.
+    - Respeitar as regras de negócio definidas no projeto.
+
+  tasks:
+    - Dividir a implementação em tarefas pequenas e verificáveis.
+    - Evitar tarefas fora do escopo da mudança.
+
+operations:
+  apply:
+    guidance:
+      - Verificar se a implementação corresponde às especificações antes de concluir.
+      - Preservar as decisões arquiteturais e as regras do projeto.
+
+  archive:
+    guidance:
+      - Confirmar que a implementação corresponde à especificação.
+      - Manter o histórico das mudanças concluídas.
