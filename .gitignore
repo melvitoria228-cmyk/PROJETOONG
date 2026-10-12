@@ -1,0 +1,21 @@
+*.py[cod]
+.states
+*.db
+__pycache__/
+assets/external/
+.web
+.venv/
+# Variáveis de ambiente e segredos
+.env
+.env.*
+!.env.example
+
+# Arquivos e pastas locais do Reflex
+.states/
+.web/
+# Configurações locais de ferramentas
+.vscode/
+.gemini/
+
+# Exportações locais do Xano
+xano/
