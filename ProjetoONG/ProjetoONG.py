@@ -1,13 +1,17 @@
-
 import os
 import httpx
 import reflex as rx
 from dotenv import load_dotenv
-
+from ProjetoONG.gestao_animal import gestao_animal
 load_dotenv()
 
 XANO_LOGIN_URL = os.getenv("XANO_LOGIN_URL")
 XANO_ME_URL = os.getenv("XANO_ME_URL")
+XANO_ANIMAL_LIST_URL = os.getenv("XANO_ANIMAL_LIST_URL")
+XANO_ANIMAL_CREATE_URL = os.getenv("XANO_ANIMAL_CREATE_URL")
+XANO_ANIMAL_DETAIL_URL = os.getenv("XANO_ANIMAL_DETAIL_URL")
+XANO_ANIMAL_UPDATE_URL = os.getenv("XANO_ANIMAL_UPDATE_URL")
+XANO_ANIMAL_DELETE_URL = os.getenv("XANO_ANIMAL_DELETE_URL")
 
 
 class LoginState(rx.State):
@@ -15,6 +19,11 @@ class LoginState(rx.State):
     senha: str = ""
     token: str = ""
     tipo_usuario: str = ""
+    tela_atual: str = "inicio"
+
+    @rx.event
+    def set_tela(self, tela: str):
+        self.tela_atual = tela
 
     @rx.event
     def set_email(self, valor: str):
@@ -145,6 +154,7 @@ class LoginState(rx.State):
         self.tipo_usuario = ""
         self.email = ""
         self.senha = ""
+        self.tela_atual = "inicio"
         return rx.redirect("/")
 
 
@@ -175,7 +185,6 @@ def index() -> rx.Component:
             background="#F4E7D5",
         ),
 
-       
         # Painel de login à direita
         rx.center(
             rx.vstack(
@@ -193,14 +202,14 @@ def index() -> rx.Component:
                     placeholder="E-mail",
                     type="email",
                     on_change=LoginState.set_email,
-                    width="68%",
+                    width="60%",
                     radius="large",
                 ),
                 rx.input(
                     placeholder="Senha",
                     type="password",
                     on_change=LoginState.set_senha,
-                    width="68%",
+                    width="60%",
                     radius="large",
                 ),
 
@@ -209,13 +218,12 @@ def index() -> rx.Component:
                     rx.button(
                         "Entrar",
                         on_click=LoginState.validar_login,
-                        width="40%",
+                        width="80%",
                         background="#D78A45",
                         color="white",
                         radius="large",
                     ),
-
-                     width="68%",
+                    width="60%",
                 ),
 
                 spacing="4",
@@ -234,149 +242,256 @@ def index() -> rx.Component:
         align="stretch",
     )
 
+
+def item_menu(icone: str, texto: str, tela: str = "") -> rx.Component:
+    """Item do menu lateral. Sem 'tela', o item ainda não faz nada."""
+    ativo = LoginState.tela_atual == tela
+    return rx.hstack(
+        rx.icon(
+            icone,
+            size=18,
+            color=rx.cond(ativo, "#684638", "#766A62"),
+        ),
+        rx.text(
+            texto,
+            size="2",
+            weight=rx.cond(ativo, "bold", "medium"),
+            color=rx.cond(ativo, "#342D29", "#5E5A55"),
+        ),
+        spacing="3",
+        align="center",
+        width="100%",
+        padding="10px 12px",
+        border_radius="10px",
+        cursor="pointer",
+        background=rx.cond(ativo, "#FFFFFF", "transparent"),
+        box_shadow=rx.cond(ativo, "0 1px 3px rgba(104, 70, 56, 0.15)", "none"),
+        transition="background 0.15s ease",
+        _hover={"background": "rgba(255, 255, 255, 0.65)"},
+        on_click=LoginState.set_tela(tela) if tela else None,
+    )
+
+
+def titulo_secao_menu(texto: str) -> rx.Component:
+    return rx.text(
+        texto,
+        size="1",
+        weight="bold",
+        color="#9A8C82",
+        letter_spacing="0.08em",
+        padding="14px 12px 4px 12px",
+    )
+
+
+def menu_lateral() -> rx.Component:
+    return rx.vstack(
+        # Marca
+        rx.hstack(
+            rx.center(
+                rx.icon("paw-print", size=22, color="white"),
+                background="#684638",
+                border_radius="12px",
+                width="42px",
+                height="42px",
+                flex_shrink="0",
+            ),
+            rx.vstack(
+                rx.text("Porto Seguro Pet", size="4", weight="bold", color="#342D29"),
+                rx.text("Painel administrativo", size="1", color="#766A62"),
+                spacing="0",
+                align="start",
+            ),
+            spacing="3",
+            align="center",
+            padding="4px 4px 16px 4px",
+            width="100%",
+        ),
+
+        rx.divider(color_scheme="brown", opacity="0.4"),
+
+        titulo_secao_menu("PRINCIPAL"),
+        item_menu("layout-dashboard", "Início", "inicio"),
+        item_menu("paw-print", "Gestão de Animais", "animais"),
+        item_menu("bed-double", "Lares Temporários"),
+
+        titulo_secao_menu("ATENDIMENTO"),
+        item_menu("stethoscope", "Atendimento Veterinário"),
+        item_menu("heart-handshake", "Adoções"),
+        item_menu("clipboard-check", "Pós-Adoção"),
+
+        titulo_secao_menu("ADMINISTRAÇÃO"),
+        item_menu("users", "Voluntários"),
+        item_menu("package", "Estoque"),
+        item_menu("wallet", "Doações"),
+
+        spacing="1",
+        align="stretch",
+        width="280px",
+        min_width="280px",
+        height="100vh",
+        padding="24px 16px",
+        background="#F4E7D5",
+        border_right="1px solid #EAE1D7",
+        overflow_y="auto",
+    )
+
+
 def area_administrativa() -> rx.Component:
     return rx.hstack(
         # Menu lateral administrativo
-        rx.vstack(
-            rx.text(
-                "🐾 Porto Seguro Pet",
-                size="5",
-                weight="bold",
-                color="#3E4149",
-            ),
-
-            rx.divider(),
-
-            rx.button(
-                "🏠  Início",
-                width="100%",
-                variant="ghost",
-                color="#3E4149",
-            ),
-
-            rx.button(
-                "🐾  Animais",
-                width="100%",
-                variant="ghost",
-                color="#3E4149",
-            ),
-
-            rx.button(
-                "🏠  Lares Temporários",
-                width="100%",
-                variant="ghost",
-                color="#3E4149",
-            ),
-
-            rx.button(
-                "🩺  Atendimento Veterinário",
-                width="100%",
-                variant="ghost",
-                color="#3E4149",
-            ),
-
-            rx.button(
-                "❤️  Adoções",
-                width="100%",
-                variant="ghost",
-                color="#3E4149",
-            ),
-
-            rx.button(
-                "📋  Pós-Adoção",
-                width="100%",
-                variant="ghost",
-                color="#3E4149",
-            ),
-
-            rx.button(
-                "👥  Voluntários",
-                width="100%",
-                variant="ghost",
-                color="#3E4149",
-            ),
-
-            rx.button(
-                "📦  Estoque",
-                width="100%",
-                variant="ghost",
-                color="#3E4149",
-            ),
-
-            rx.button(
-                "💰  Doações",
-                width="100%",
-                variant="ghost",
-                color="#3E4149",
-            ),
-
-            spacing="3",
-            align="stretch",
-            width="280px",
-            height="100vh",
-            padding="24px",
-            background="#F4E7D5",
-        ),
+        menu_lateral(),
 
         # Área principal administrativa
         rx.vstack(
             # Cabeçalho com o botão Sair à direita
             rx.hstack(
                 rx.spacer(),
-
                 rx.button(
                     "↩  Sair",
                     on_click=LoginState.sair,
                     color="#FFFFFF",
-                    background="#3E4149",
+                    background="#684638",
                 ),
-
                 width="100%",
                 align="center",
-                justify="end",
                 padding="20px 24px",
             ),
 
             # Conteúdo central
-            rx.center(
-                rx.vstack(
-                    rx.text(
-                        "Área Administrativa",
-                        size="6",
-                        weight="bold",
-                        color="#3E4149",
-                    ),
+            rx.box(
+                rx.cond(
+                    LoginState.tela_atual == "animais",
+                    gestao_animal(LoginState.token),
 
-                    rx.text(
-                        "Bem-vindo à Área Administrativa",
-                        size="4",
-                        color="#5E5A55",
-                    ),
+                    
+                    rx.vstack(
+                        rx.text(
+                           "Bem-vindo à área administrativa!",
+                           size="8",
+                           weight="bold",
+                           color="#3E4149",
+                        ),
 
-                    rx.text(
-                        "Selecione uma opção no menu lateral.",
-                        size="3",
-                        color="#5E5A55",
-                    ),
 
-                    spacing="4",
-                    align="center",
+                        rx.text(
+                            "Proteção, cuidado e novas oportunidades.",
+                            size="4",
+                            color="#6D896F",
+                        ),
+
+                        rx.box(
+                           rx.vstack(
+                                rx.heading(
+                                    "Quem somos",
+                                    size="5",
+                                    color="#3E4149",
+                               ),
+
+
+                              rx.text(
+                                   "Somos uma organização dedicada à proteção e ao cuidado dos animais, acompanhando sua trajetória do resgate à adoção responsável.",
+                                   size="3",
+                                   color="#5E5A55",
+                                ),
+                   
+                   
+                               spacing="3",
+                               align="start",
+                               width="100%",
+                            ),
+
+                          background="#FFFFFF",
+                          padding="24px",
+                          border_radius="16px",
+                          width="100%",
+                          box_shadow="0 2px 10px rgba(62, 65, 73, 0.08)",
+                        ),
+
+
+                        rx.box(
+                            rx.vstack(
+                                rx.heading(
+                                    "Nossa missão",
+                                    size="5",
+                                    color="#3E4149",
+                                ),
+
+
+                                rx.text(
+                                    "Promover o bem-estar animal por meio do resgate, dos cuidados necessários, do acolhimento temporário e da busca por lares responsáveis.",
+                                    size="3",
+                                    color="#5E5A55",
+                                
+                                ),
+                                spacing="3",
+                                align="start",
+                                width="100%",
+                            ),
+                         background="#FFFFFF",
+                         padding="24px",
+                         border_radius="16px",
+                         width="100%",
+                         box_shadow="0 2px 10px rgba(62, 65, 73, 0.08)",
+                        ),
+                        spacing="5",
+                        align="center",
+                        justify="center",
+                        width="100%",
+                        max_width="760px",
+                        min_height="60vh",
+                        margin="0 auto",
+                        padding="24px",
+                    ),
                 ),
-
                 width="100%",
                 flex="1",
             ),
-
-            width="100%",
-            height="100vh",
             spacing="0",
-            background="#FFF7ED",
-        ),
+            align="stretch",
+            flex="1",
+            min_width="0",
+            min_height="100vh",
+            background="#FAF6F0",
+        ),    
+    ),
 
+# Fim da área administrativa
+
+
+def cartao_tutor(icone: str, titulo: str, texto: str) -> rx.Component:
+    return rx.card(
+        rx.vstack(
+            rx.center(
+                rx.icon(
+                    icone,
+                    size=30,
+                    color="#D78A45",
+                ),
+                width="54px",
+                height="54px",
+                background="#F4E7D5",
+                border_radius="14px",
+            ),
+            rx.heading(
+                titulo,
+                size="4",
+                color="#3E4149",
+            ),
+            rx.text(
+                texto,
+                size="2",
+                color="#5E5A55",
+            ),
+            align="start",
+            spacing="3",
+            width="100%",
+        ),
         width="100%",
-        height="100vh",
-        spacing="0",
-        align="start",
+        height="100%",
+        padding="20px",
+        background="#FFFFFF",
+        border_radius="16px",
+        box_shadow="0 4px 14px rgba(62, 65, 73, 0.08)",
     )
 
 
@@ -485,164 +600,25 @@ def area_tutor() -> rx.Component:
 
             # Cartões informativos
             rx.grid(
-                rx.card(
-                    rx.vstack(
-                        rx.center(
-                            rx.icon(
-                                "heart",
-                                size=30,
-                                color="#D78A45",
-                            ),
-                            width="54px",
-                            height="54px",
-                            background="#F4E7D5",
-                            border_radius="14px",
-                        ),
-
-                        rx.heading(
-                            "Minhas adoções",
-                            size="4",
-                            color="#3E4149",
-                        ),
-
-                        rx.text(
-                            "Espaço destinado às informações "
-                            "sobre suas adoções.",
-                            size="2",
-                            color="#5E5A55",
-                        ),
-
-                        align="start",
-                        spacing="3",
-                        width="100%",
-                    ),
-
-                    width="100%",
-                    height="100%",
-                    padding="20px",
-                    background="#FFFFFF",
-                    border_radius="16px",
-                    box_shadow="0 4px 14px rgba(62, 65, 73, 0.08)",
+                cartao_tutor(
+                    "heart",
+                    "Minhas adoções",
+                    "Espaço destinado às informações sobre suas adoções.",
                 ),
-
-                rx.card(
-                    rx.vstack(
-                        rx.center(
-                            rx.icon(
-                                "calendar-check",
-                                size=30,
-                                color="#D78A45",
-                            ),
-                            width="54px",
-                            height="54px",
-                            background="#F4E7D5",
-                            border_radius="14px",
-                        ),
-
-                        rx.heading(
-                            "Acompanhamento",
-                            size="4",
-                            color="#3E4149",
-                        ),
-
-                        rx.text(
-                            "Espaço destinado ao acompanhamento "
-                            "pós-adoção.",
-                            size="2",
-                            color="#5E5A55",
-                        ),
-
-                        align="start",
-                        spacing="3",
-                        width="100%",
-                    ),
-
-                    width="100%",
-                    height="100%",
-                    padding="20px",
-                    background="#FFFFFF",
-                    border_radius="16px",
-                    box_shadow="0 4px 14px rgba(62, 65, 73, 0.08)",
+                cartao_tutor(
+                    "calendar-check",
+                    "Acompanhamento",
+                    "Espaço destinado ao acompanhamento pós-adoção.",
                 ),
-
-                rx.card(
-                    rx.vstack(
-                        rx.center(
-                            rx.icon(
-                                "user-round",
-                                size=30,
-                                color="#D78A45",
-                            ),
-                            width="54px",
-                            height="54px",
-                            background="#F4E7D5",
-                            border_radius="14px",
-                        ),
-
-                        rx.heading(
-                            "Meus dados",
-                            size="4",
-                            color="#3E4149",
-                        ),
-
-                        rx.text(
-                            "Espaço destinado às informações "
-                            "do tutor.",
-                            size="2",
-                            color="#5E5A55",
-                        ),
-
-                        align="start",
-                        spacing="3",
-                        width="100%",
-                    ),
-
-                    width="100%",
-                    height="100%",
-                    padding="20px",
-                    background="#FFFFFF",
-                    border_radius="16px",
-                    box_shadow="0 4px 14px rgba(62, 65, 73, 0.08)",
+                cartao_tutor(
+                    "user-round",
+                    "Meus dados",
+                    "Espaço destinado às informações do tutor.",
                 ),
-
-                rx.card(
-                    rx.vstack(
-                        rx.center(
-                            rx.icon(
-                                "book-open",
-                                size=30,
-                                color="#D78A45",
-                            ),
-                            width="54px",
-                            height="54px",
-                            background="#F4E7D5",
-                            border_radius="14px",
-                        ),
-
-                        rx.heading(
-                            "Orientações",
-                            size="4",
-                            color="#3E4149",
-                        ),
-
-                        rx.text(
-                            "Espaço destinado a orientações "
-                            "sobre adoção responsável.",
-                            size="2",
-                            color="#5E5A55",
-                        ),
-
-                        align="start",
-                        spacing="3",
-                        width="100%",
-                    ),
-
-                    width="100%",
-                    height="100%",
-                    padding="20px",
-                    background="#FFFFFF",
-                    border_radius="16px",
-                    box_shadow="0 4px 14px rgba(62, 65, 73, 0.08)",
+                cartao_tutor(
+                    "book-open",
+                    "Orientações",
+                    "Espaço destinado a orientações sobre adoção responsável.",
                 ),
 
                 columns={
@@ -703,13 +679,16 @@ def area_tutor() -> rx.Component:
 
         width="100%",
         min_height="100vh",
-        background="#FFF7ED", 
-        
+        background="#FFF7ED",
     )
-    
 
 
-app = rx.App()
+app = rx.App(
+    theme=rx.theme(
+        appearance="light",
+        accent_color="brown",
+    ),
+)
 app.add_page(index)
 app.add_page(
     area_administrativa,
