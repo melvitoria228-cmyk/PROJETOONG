@@ -1,52 +1,97 @@
+# Design: Área do Tutor/Adotante
+
 ## Context
 
-O frontend utiliza Reflex e possui uma página de login e uma área administrativa registrada na rota `/administrativo`. A autenticação consulta o Xano para identificar o tipo de usuário. A página do Tutor/Adotante será criada na rota `/tutor`.
+O frontend do sistema Porto Seguro Pet utiliza Reflex, com o Xano como backend. A aplicação possui uma página de login, uma área administrativa registrada na rota `/administrativo` e uma área do Tutor/Adotante registrada na rota `/tutor`.
+
+A autenticação consulta o Xano para validar o usuário e identificar seu tipo de acesso. Após o login, o usuário é redirecionado para a área correspondente ao seu perfil.
+
+A área do Tutor/Adotante possui um cabeçalho, uma mensagem de boas-vindas e quatro cartões: “Minhas adoções”, “Acompanhamento”, “Meus dados” e “Orientações”.
+
+A funcionalidade “Minhas adoções” já possui uma página própria e consulta os processos de adoção por meio de um endpoint GET do Xano, utilizando o token de autenticação. A interface apresenta informações retornadas pelo backend, incluindo o status do processo, a data da solicitação e o identificador do animal.
+
+Apesar de a consulta estar funcionando, sua apresentação visual ainda precisa ser aprimorada. Pretende-se tornar as informações mais dinâmicas, organizadas e fáceis de compreender, explicando o significado dos campos e facilitando a identificação do animal relacionado a cada processo.
+
+Os demais cartões serão implementados gradualmente. O cartão “Acompanhamento” dependerá da integração com os registros de acompanhamento pós-adoção. O cartão “Meus dados” poderá utilizar as informações do usuário disponíveis no backend, enquanto “Orientações” poderá apresentar conteúdo informativo estático.
 
 Os requisitos funcionais desta mudança estão definidos em `specs/area-tutor-adotante/spec.md`.
 
 ## Goals / Non-Goals
 
-**Goals:**
+### Goals
 
-* Criar uma página inicial visualmente organizada para o Tutor/Adotante.
-* Registrar a página na rota `/tutor`.
-* Utilizar um cabeçalho superior, uma área de boas-vindas e cartões de conteúdo.
-* Aplicar a paleta de cores grafite, creme e terracota.
-* Manter a interface acolhedora, com referências visuais à adoção responsável de cães e gatos.
+- Manter uma página inicial organizada para o Tutor/Adotante.
+- Disponibilizar a página na rota `/tutor`.
+- Manter o cabeçalho superior, a área de boas-vindas e os quatro cartões.
+- Aplicar a paleta de cores grafite, creme e terracota.
+- Permitir a navegação dos cartões para páginas específicas conforme suas funcionalidades forem implementadas.
+- Consultar e exibir os processos de adoção reais retornados pelo Xano.
+- Utilizar o token de autenticação nas requisições que exigem acesso autenticado.
+- Reutilizar componentes e funções existentes para manter o código simples e organizado.
+- Preparar a navegação para a futura integração do acompanhamento pós-adoção.
+- Melhorar a apresentação visual da página “Minhas adoções”, tornando a consulta mais dinâmica, organizada e fácil de compreender.
+- Explicar o significado dos campos apresentados na consulta, utilizando rótulos claros e descrições simples quando necessário.
+- Facilitar a identificação do animal relacionado a cada processo, evitando que o tutor precise reconhecê-lo apenas pelo identificador numérico.
+- Organizar as informações para que o tutor compreenda rapidamente a situação e o andamento de sua solicitação de adoção.
 
-**Non-Goals:**
+### Non-Goals
 
-* Implementar cadastro, edição ou consulta real de animais.
-* Implementar solicitações ou acompanhamento funcional de adoções.
-* Implementar edição dos dados pessoais do tutor.
-* Alterar endpoints, tabelas ou autenticação no Xano.
-* Criar funcionalidades para elementos que, nesta etapa, serão apenas visuais.
+- Implementar funcionalidades que não estejam previstas nos requisitos do projeto.
+- Criar uma nova tabela no banco apenas para representar um cartão da interface.
+- Implementar o acompanhamento pós-adoção antes de configurar e validar seus endpoints.
+- Implementar edição de dados pessoais sem verificar previamente os endpoints disponíveis.
+- Substituir a autenticação existente ou introduzir novas dependências desnecessárias.
+- Considerar a autorização das operações garantida apenas porque o usuário está autenticado no frontend.
+- Alterar desnecessariamente a estrutura do banco para melhorar a apresentação visual da consulta.
+- Exibir fotografias ou informações de animais que não estejam disponíveis ou não possam ser obtidas de forma confiável no backend.
 
 ## Decisions
 
-* **Usar Reflex:** manter a tecnologia já utilizada no frontend, sem introduzir novas dependências.
-* **Criar uma função de página independente:** definir a página do Tutor/Adotante separadamente da página administrativa.
-* **Registrar a rota `/tutor`:** utilizar `app.add_page` para disponibilizar a página.
-* **Utilizar cabeçalho superior:** exibir a identificação “Área do Tutor/Adotante”, a marca Porto Seguro Pet e elementos visuais de perfil.
-* **Não utilizar menu lateral:** organizar a navegação visual por meio de cartões na área principal.
-* **Criar uma área de boas-vindas:** apresentar uma saudação e uma mensagem acolhedora relacionada à adoção.
-* **Exibir quatro cartões:** “Minhas adoções”, “Acompanhamento”, “Meus dados” e “Orientações”. Nesta etapa, os cartões não executarão funcionalidades ainda não implementadas.
-* **Aplicar a paleta visual:** utilizar grafite `#3E4149`, creme `#F4E7D5` e terracota `#D78A45`, com fundos claros, cartões com cantos arredondados e espaçamento confortável.
-* **Manter o escopo inicial controlado:** implementar a apresentação visual sem simular dados reais ou ações funcionais.
+- **Manter Reflex:** utilizar a tecnologia já adotada no frontend.
+- **Manter o Xano como backend:** realizar as consultas e operações necessárias por meio dos endpoints existentes.
+- **Separar as páginas:** manter a área administrativa, a área do Tutor/Adotante e as páginas de funcionalidades em rotas próprias.
+- **Manter a rota `/tutor`:** utilizar a rota já registrada para a área inicial do Tutor/Adotante.
+- **Reutilizar o componente `cartao_tutor`:** centralizar a apresentação visual dos cartões e permitir a definição de uma rota de destino para cada um.
+- **Manter os quatro cartões:** “Minhas adoções”, “Acompanhamento”, “Meus dados” e “Orientações”.
+- **Consultar os processos de adoção pelo Xano:** utilizar o endpoint GET já configurado, enviando o token de autenticação quando necessário.
+- **Exibir dados reais:** apresentar as informações efetivamente retornadas pelo backend, sem simular processos de adoção.
+- **Separar interface e dados:** um cartão representa uma opção de navegação e não precisa corresponder diretamente a uma tabela do banco.
+- **Implementar gradualmente os cartões:** priorizar as funcionalidades já iniciadas e configurar os endpoints necessários antes de integrar novas consultas.
+- **Melhorar a consulta de adoções:** reformular gradualmente a apresentação da página “Minhas adoções”, priorizando a clareza das informações e a facilidade de uso.
+- **Utilizar rótulos explicativos:** apresentar nomes compreensíveis para os campos e descrições simples quando necessário. Por exemplo, explicar que o status representa a situação atual do processo de adoção.
+- **Identificar visualmente o animal:** verificar quais informações estão disponíveis para apresentar o animal associado a cada processo, como nome, espécie e, se houver, fotografia.
+- **Preservar os dados do backend:** manter a consulta baseada nos dados reais retornados pelo Xano, melhorando sua apresentação no frontend sem inventar informações.
+- **Priorizar a compreensão do tutor:** organizar os dados em cartões, seções ou outros elementos visuais adequados, evitando a exibição de identificadores técnicos sem explicação.
+- **Verificar a disponibilidade dos dados:** antes de implementar a identificação visual do animal, conferir se o endpoint de adoções retorna informações suficientes ou se será necessário consultar outro endpoint.
+- **Manter a identidade visual:** utilizar grafite `#3E4149`, creme `#F4E7D5` e terracota `#D78A45`, com fundos claros, cantos arredondados e espaçamento confortável.
 
 ## Risks / Trade-offs
 
-* **A rota pode não estar registrada corretamente:** verificar a inicialização do Reflex e acessar `/tutor` no navegador.
-* **O login pode reconhecer o tipo de usuário, mas a página não estar disponível:** testar o registro da rota e o redirecionamento após a autenticação.
-* **Os cartões podem parecer funcionais sem serem:** deixar claro no desenvolvimento que são apenas elementos visuais nesta etapa.
-* **O controle de acesso ainda não estará garantido por esta mudança:** tratar a proteção das páginas restritas separadamente.
+- **Rotas incorretas:** verificar se cada cartão direciona para a página esperada.
+- **Endpoints indisponíveis ou incorretos:** testar as URLs, os métodos HTTP e os formatos das respostas do Xano.
+- **Falhas de autenticação:** tratar respostas de erro e verificar se o token é enviado corretamente.
+- **Exposição ou alteração indevida de dados:** verificar no backend se cada usuário só pode consultar ou alterar os registros aos quais tem permissão.
+- **Funcionalidades parcialmente implementadas:** distinguir os cartões que já possuem páginas funcionais daqueles que ainda dependem de implementação.
+- **Dependência de novos endpoints:** o acompanhamento pós-adoção precisará de consultas próprias, conforme a estrutura da tabela e os requisitos definidos.
+- **Identificação incompleta do animal:** o endpoint de adoções pode retornar apenas o identificador do animal, exigindo uma consulta adicional para obter seu nome, espécie ou fotografia.
+- **Excesso de informações na consulta:** adicionar explicações e elementos visuais sem comprometer a organização e a simplicidade da interface.
+- **Complexidade desnecessária:** priorizar o reaproveitamento de componentes e endpoints existentes, evitando duplicações.
 
 ## Migration Plan
 
-1. Atualizar os requisitos e validar a documentação OpenSpec.
-2. Implementar a página com cabeçalho superior, boas-vindas e quatro cartões.
-3. Registrar a rota `/tutor`.
-4. Executar a aplicação e verificar a aparência e a abertura da página.
-5. Testar os redirecionamentos após o login.
-6. Executar novamente a validação OpenSpec.
-7. Em caso de falha, corrigir o problema antes de considerar a etapa concluída.
+1. Atualizar a documentação OpenSpec para refletir a implementação atual.
+2. Manter a página do Tutor/Adotante registrada na rota `/tutor`.
+3. Manter o redirecionamento após o login conforme o tipo de usuário.
+4. Manter a página “Minhas adoções” integrada ao endpoint GET do Xano.
+5. Testar a exibição do status, da data da solicitação e do identificador do animal.
+6. Tornar os cartões restantes clicáveis e definir suas páginas de destino.
+7. Configurar e testar os endpoints necessários para o acompanhamento pós-adoção.
+8. Verificar quais dados e endpoints existentes podem ser utilizados em “Meus dados”.
+9. Criar a página de “Orientações” com conteúdo informativo, sem exigir endpoint quando não houver necessidade.
+10. Testar as rotas, o comportamento dos cartões e as respostas da API.
+11. Atualizar os requisitos e as tarefas do OpenSpec conforme o avanço real da implementação.
+12. Executar a validação do OpenSpec e corrigir inconsistências antes de considerar a mudança concluída.
+13. Revisar a apresentação atual da página “Minhas adoções” e identificar os campos que precisam de explicações.
+14. Verificar quais informações do animal relacionado ao processo estão disponíveis no Xano e se é necessário consultar outro endpoint.
+15. Reformular a interface para destacar o animal, explicar os campos e facilitar a compreensão do status do processo.
+16. Testar a nova apresentação com os dados reais retornados pelo backend.

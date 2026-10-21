@@ -225,7 +225,7 @@ class AnimalState(rx.State):
         if resposta.status_code in (401, 403):
             return "Sessão expirada. Faça login novamente."
         if resposta.status_code != 200:
-            print(f"Erro ao listar animais: HTTP {resposta.status_code} {resposta.text[:300]}")
+            print(f"Erro ao listar animais: HTTP {resposta.status_code}")
             return f"O servidor não conseguiu listar os animais (HTTP {resposta.status_code})."
 
         try:
@@ -238,11 +238,6 @@ class AnimalState(rx.State):
             dados = dados.get("items", [])
         if not isinstance(dados, list):
             return "Formato de resposta inesperado."
-
-        # TEMPORÁRIO: mostra no terminal um registro de exemplo, para conferir
-        # nomes de campos e valores (sexo, porte, status...). 
-        if dados:
-            print("Exemplo de registro do Xano:", dados[0])
 
         self.animais = [xano_para_tela(i) for i in dados if isinstance(i, dict)]
         return ""
@@ -263,7 +258,7 @@ class AnimalState(rx.State):
         if resposta.status_code in (401, 403):
             return "Sessão expirada. Faça login novamente."
         if resposta.status_code not in (200, 201, 204):
-            print(f"Erro {metodo}: HTTP {resposta.status_code} {resposta.text[:300]}")
+            print(f"Erro {metodo}: HTTP {resposta.status_code}")
             return f"O servidor recusou a operação (HTTP {resposta.status_code})."
         return ""
 
