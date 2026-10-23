@@ -2,46 +2,41 @@
 
 ## Problema
 
-O sistema Porto Seguro Pet precisa de uma área administrativa que permita ao usuário responsável pela ONG acessar de forma organizada as principais áreas de gerenciamento do sistema.
+O sistema Porto Seguro Pet precisa de uma área administrativa organizada que permita à equipe da ONG gerenciar centralidamente o ciclo de vida dos animais resgatados e acessar os demais módulos operacionais da instituição.
 
-Atualmente, as funcionalidades ainda não estão organizadas em uma interface administrativa. É necessário criar uma estrutura inicial que apresente os principais módulos relacionados aos processos de negócio da ONG.
+Anteriormente, a interface administrativa possuía apenas telas estáticas. Era necessário disponibilizar o módulo de Gestão de Animais com funcionalidades completas de consulta, cadastro, edição, exclusão e suporte à visualização expandida de fotos dos pets.
 
 ## Objetivo
 
-Criar a estrutura inicial da Área Administrativa do Porto Seguro Pet, apresentando de forma simples e organizada os principais módulos do sistema.
+Disponibilizar a estrutura da Área Administrativa do Porto Seguro Pet na rota `/administrativo`, oferecendo um menu lateral permanentemente aberto para navegação entre os módulos e o gerenciamento operacional completo dos animais resgatados.
 
-A primeira tela será uma área de acesso aos módulos administrativos, sem implementar ainda as funcionalidades completas de cadastro, consulta ou alteração de dados.
+O módulo de Gestão de Animais passa a ser funcional e integrado diretamente com os endpoints da API do Xano, enquanto a estrutura dos demais módulos serve como base para a implementação gradual.
 
 ## Escopo
 
-A Área Administrativa deverá apresentar os seguintes módulos:
+A Área Administrativa apresenta os seguintes módulos divididos por seções no menu lateral:
 
-* **Animais** — gerenciamento dos animais cadastrados após o resgate.
-* **Lares Temporários** — gerenciamento dos lares e do histórico de permanência dos animais.
-* **Atendimento Veterinário** — acesso aos registros de atendimentos veterinários.
-* **Adoções** — acompanhamento dos processos de adoção e dos tutores/adotantes.
-* **Pós-Adoção** — acompanhamento dos registros realizados após a adoção.
-* **Voluntários** — gerenciamento de voluntários e suas atividades.
-* **Estoque** — gerenciamento de suprimentos e suas movimentações.
-* **Doações** — gerenciamento de doadores e doações.
-
-As tabelas auxiliares e de relacionamento serão utilizadas dentro dos respectivos módulos, não sendo necessário criar um módulo separado para cada tabela.
+- **PRINCIPAL:**
+  - **Início** — visão geral com a missão e valores da ONG.
+  - **Gestão de Animais** — gerenciamento completo (CRUD) dos animais resgatados, com suporte a filtros, paginação, foto em formato texto (`foto_url`) e modal de ampliação da imagem.
+  - **Lares Temporários** — gerenciamento dos lares e histórico de acolhimento.
+- **ATENDIMENTO:**
+  - **Atendimento Veterinário** — consulta e registro de atendimentos veterinários.
+  - **Adoções** — acompanhamento das solicitações e processos de adoção.
+  - **Pós-Adoção** — registros de acompanhamento dos animais adotados.
+- **ADMINISTRAÇÃO:**
+  - **Voluntários** — gerenciamento do cadastro de voluntários e suas atividades.
+  - **Estoque** — controle dos suprimentos e movimentações.
+  - **Doações** — registros de doadores e doações financeiras.
 
 ## Fora do escopo
 
-Nesta etapa não serão implementados:
+Nesta etapa não estão implementados:
 
-* operações completas de cadastro, edição ou exclusão;
-* integração com o banco de dados;
-* autenticação e autorização da área administrativa;
-* consultas ou relatórios;
-* regras completas de atualização de status;
-* funcionalidades específicas de cada módulo.
-
-Essas funcionalidades serão implementadas posteriormente, conforme o desenvolvimento de cada área.
+- operações completas de cadastro e edição para os módulos que ainda não possuem endpoints ativos (Lares Temporários, Voluntários, Estoque, Doações, etc.);
+- upload direto de arquivos pesados de imagem para o servidor (utilizando o link de imagem via URL em texto no campo `foto_url`);
+- personalização de permissões administrativas por níveis de acesso.
 
 ## Resultado esperado
 
-Ao final desta mudança, o sistema deverá possuir uma primeira tela da Área Administrativa, com acesso visual organizado aos oito módulos principais do sistema.
-
-A estrutura deverá servir como base para a implementação posterior das funcionalidades reais de cada módulo.
+Ao final desta mudança, o sistema possui a Área Administrativa funcional com acesso organizado aos módulos operacionais e o gerenciamento completo do cadastro de animais no módulo **Gestão de Animais**, integrado perfeitamente à API do Xano.

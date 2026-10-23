@@ -1,44 +1,38 @@
-## 1. Preparação
+## 1. Estrutura e Interface da Área Administrativa
 
-* [x] 1.1 Confirmar a estrutura inicial do frontend Reflex e verificar que o projeto continua executando com `reflex run`
-* [x] 1.2 Preparar a estrutura da tela de login no frontend e verificar que a nova tela pode ser acessada sem alterar as demais partes do projeto
+- [x] 1.1 Criar a função e a rota `/administrativo` no frontend Reflex para a Área Administrativa.
+- [x] 1.2 Implementar o menu lateral fixo (sempre aberto) dividido nas seções PRINCIPAL, ATENDIMENTO e ADMINISTRAÇÃO com fundo `#F4E7D5`.
+- [x] 1.3 Adicionar a identificação da marca Porto Seguro Pet com ícone institucional e atalho de saída (*logout*).
+- [x] 1.4 Organizar os itens do menu (Início, Gestão de Animais, Lares Temporários, Atendimento Veterinário, Adoções, Pós-Adoção, Voluntários, Estoque, Doações).
+- [x] 1.5 Aplicar a paleta institucional com grafite (`#342D29` / `#3E4149`), creme (`#FAF6F0` / `#F4E7D5`) e terracota (`#684638` / `#D78A45`).
+- [x] 1.6 Implementar a seleção dinâmica de telas no menu lateral através de `LoginState.tela_atual`.
 
-## 2. Interface de Login
+## 2. Redirecionamento e Controle de Acesso
 
-* [x] 2.1 Criar a tela única de login para TUTOR/ADOTANTE e ADMINISTRADOR e verificar que ambos utilizam a mesma interface
-* [x] 2.2 Adicionar os campos de e-mail e senha e verificar que ambos aparecem corretamente na tela
-* [x] 2.3 Adicionar o botão de acesso e verificar que ele pode ser acionado pelo usuário
-* [x] 2.4 Implementar a validação dos campos obrigatórios e verificar que a tentativa sem e-mail ou senha é impedida e apresenta uma mensagem ao usuário
-* [x] 2.5 Revisar a apresentação visual da tela de login e verificar que a interface está organizada, simples e adequada à identidade visual do projeto
+- [x] 2.1 Verificar o direcionamento automático do usuário `administrador` para `/administrativo` após autenticação no Xano.
+- [x] 2.2 Impedir que usuários do tipo `Tutor/Adotante` acessem a Área Administrativa.
+- [x] 2.3 Garantir que o encerramento de sessão (*logout*) limpe os dados da sessão e redirecione o usuário de volta para a tela inicial `/`.
 
-## 3. Integração com o Xano
+## 3. Módulo de Gestão de Animais (CRUD Completo)
 
-* [x] 3.1 Configurar a leitura da variável `XANO_LOGIN_URL` e verificar que a aplicação identifica quando a URL está configurada
-* [x] 3.2 Integrar o envio de e-mail e senha ao endpoint de login do Xano e verificar que a autenticação retorna uma resposta válida para credenciais corretas
-* [x] 3.3 Tratar credenciais inválidas e falhas de conexão e verificar que o frontend apresenta mensagens adequadas
-* [x] 3.4 Armazenar o token de autenticação após o login e verificar que ele pode ser utilizado na consulta autenticada
-* [x] 3.5 Consultar o endpoint `/auth/me` usando o token e verificar o recebimento de `id`, `email` e `tipo_usuario`
-* [x] 3.6 Tratar respostas inesperadas do login e da consulta de usuário e verificar que o acesso não é concedido quando a autenticação não pode ser confirmada
+- [x] 3.1 Desenvolver o módulo de Gestão de Animais em `gestao_animal.py` integrado à API do Xano via token JWT.
+- [x] 3.2 Criar os cartões de resumo (total de cadastros, quantidade de cães, gatos e resgates nos últimos 30 dias).
+- [x] 3.3 Implementar a barra de pesquisa por nome/código e filtros por espécie, porte e status.
+- [x] 3.4 Implementar a tabela de listagem exibindo avatar/foto do pet, informações gerais, status com badge colorida e botões de ação (Visualizar, Editar e Excluir).
+- [x] 3.5 Implementar a paginação da tabela de animais.
+- [x] 3.6 Criar o formulário em modal para criação (`POST`) e edição (`PATCH`) de registros de animais.
+- [x] 3.7 Integrar a funcionalidade de exclusão de registros (`DELETE`) com diálogo de confirmação.
 
-## 4. Identificação e Direcionamento
+## 4. Tratamento Visual de Fotos dos Animais
 
-* [x] 4.1 Identificar o tipo de usuário retornado pelo Xano e verificar o reconhecimento de TUTOR/ADOTANTE e ADMINISTRADOR
-* [x] 4.2 Direcionar o administrador para `/administrativo` e verificar o comportamento após um login válido
-* [x] 4.3 Preparar a rota inicial de TUTOR/ADOTANTE conforme o escopo da change e verificar o direcionamento após um login válido
-* [ ] 4.4 Verificar o comportamento para tipos de usuário desconhecidos e confirmar que não recebem acesso a uma área restrita
+- [x] 4.1 Configurar o suporte à coluna de texto `foto_url` no Xano para armazenar links diretos de imagens dos pets.
+- [x] 4.2 Desenvolver a extração e sanitização segura de URLs (`_extrair_url_foto`) com imagem fallback quando não houver URL válida.
+- [x] 4.3 Adicionar pré-visualização da imagem no formulário de cadastro e edição.
+- [x] 4.4 Implementar evento e modal `dialogo_foto_expandida` para exibição da foto em tamanho ampliado ao clicar nas miniaturas/avatars.
 
-## 5. Controle de Acesso
+## 5. Verificação e Validação Final
 
-* [ ] 5.1 Verificar o acesso direto à rota `/administrativo` sem autenticação e implementar a proteção necessária
-* [x] 5.2 Verificar que um usuário autenticado como TUTOR/ADOTANTE não recebe acesso à área administrativa
-* [ ] 5.3 Verificar que o estado de autenticação é tratado corretamente ao sair da sessão ou quando o token deixa de ser válido
-
-## 6. Verificação Final
-
-* [x] 6.1 Testar o login com campos vazios e verificar que a tentativa é impedida
-* [x] 6.2 Testar o login com credenciais inválidas e verificar que o acesso é impedido
-* [x] 6.3 Testar o login com credenciais válidas e verificar que o token é utilizado para identificar o usuário
-* [x] 6.4 Testar o fluxo de administrador e verificar a identificação e o direcionamento corretos
-* [x] 6.5 Testar o fluxo de TUTOR/ADOTANTE e verificar a identificação e o direcionamento previstos
-* [x] 6.6 Executar `python -m py_compile ProjetoONG/ProjetoONG.py` e verificar que o arquivo não apresenta erros de sintaxe
-
+- [x] 5.1 Testar as requisições de consulta, criação, edição e exclusão de animais com o backend Xano.
+- [x] 5.2 Testar a navegação entre a tela inicial e a Gestão de Animais na Área Administrativa.
+- [x] 5.3 Testar a abertura e fechamento do modal de foto expandida em diferentes resoluções.
+- [x] 5.4 Executar compilação do projeto e confirmar a ausência de erros de sintaxe nos arquivos da aplicação.

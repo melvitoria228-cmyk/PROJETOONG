@@ -4,54 +4,59 @@
 
 Definir a estrutura visual e a organização da Área Administrativa do Porto Seguro Pet.
 
-A implementação inicial será feita no frontend utilizando Reflex e terá como objetivo apresentar os principais módulos administrativos de forma simples e organizada.
+A implementação no frontend utiliza Reflex e backend em Xano, apresentando a estrutura de módulos com suporte à gestão operacional e visual de animais resgatados.
 
 ## Estrutura da tela
 
-A Área Administrativa deverá possuir:
+A Área Administrativa possui:
 
-1. Um menu lateral permanentemente aberto, com os nomes dos módulos sempre visíveis.
-2. A identificação do sistema Porto Seguro Pet.
-3. Os oito módulos administrativos organizados no menu, além do item Início.
-4. Uma área principal de conteúdo ao lado do menu.
-5. Um título identificando a Área Administrativa na área principal.
-6. Uma área de conteúdo preparada para apresentar posteriormente as informações e funcionalidades do módulo selecionado.
+1. Um menu lateral permanentemente aberto, organizado por seções (Principal, Atendimento e Administração), com os nomes dos módulos sempre visíveis.
+2. A identificação do sistema Porto Seguro Pet com o ícone institucional da ONG.
+3. Os módulos administrativos organizados no menu, além do item Início.
+4. Uma área superior com atalho para encerramento de sessão (*logout*).
+5. Uma área principal de conteúdo ao lado do menu para exibição do módulo selecionado.
+6. A tela de Gestão de Animais integrada para cadastro, listagem, atualização, exclusão e suporte visual a imagens dos pets.
 
 ## Módulos
 
-O menu lateral deverá apresentar os seguintes itens:
+O menu lateral apresenta os seguintes itens divididos por categorias:
 
-* **Início**
-* **Animais**
-* **Lares Temporários**
-* **Atendimento Veterinário**
-* **Adoções**
-* **Pós-Adoção**
-* **Voluntários**
-* **Estoque**
-* **Doações**
+- **PRINCIPAL:**
+  - **Início**
+  - **Gestão de Animais**
+  - **Lares Temporários**
+- **ATENDIMENTO:**
+  - **Atendimento Veterinário**
+  - **Adoções**
+  - **Pós-Adoção**
+- **ADMINISTRAÇÃO:**
+  - **Voluntários**
+  - **Estoque**
+  - **Doações**
 
-O item **Início** representa a página inicial da Área Administrativa e não corresponde a uma tabela específica do banco de dados.
+O item **Início** apresenta a visão geral da ONG com informações sobre missão e valores.
 
-Os demais módulos representam as áreas definidas no modelo de dados e nos processos de negócio do Porto Seguro Pet.
+O módulo **Gestão de Animais** permite o gerenciamento completo dos cadastros com suporte a filtros, paginação, foto em formato de texto (`foto_url`) e modal de ampliação de imagem em tempo real.
+
+Os demais módulos representam as áreas definidas no modelo de dados do Porto Seguro Pet.
 
 ## Organização visual
 
-A interface deverá utilizar duas áreas principais:
+A interface utiliza duas áreas principais:
 
-* **Menu lateral:** permanecerá sempre aberto, com os nomes dos módulos visíveis. Não deverá possuir botão para recolher ou expandir o menu.
-* **Área de conteúdo:** ficará ao lado do menu e será utilizada para apresentar o conteúdo da página selecionada.
+- **Menu lateral:** permanece sempre aberto, com os nomes dos módulos e ícones visíveis em fundo bege escuro (`#F4E7D5`).
+- **Área de conteúdo:** fica ao lado do menu em fundo creme claro (`#FAF6F0`), utilizada para apresentar as informações do módulo ativo.
 
-A interface deverá manter a identidade visual já definida para o Porto Seguro Pet, utilizando uma aparência acolhedora, simples e profissional.
+Na **Gestão de Animais**, a interface organiza-se em:
+- **Cartões de Resumo:** total de cadastros, quantidade de cães, gatos e resgates nos últimos 30 dias.
+- **Barra de Controle:** busca por nome/código, filtros por espécie, porte e status, botão de atualização e atalho para cadastro.
+- **Tabela de Dados:** exibe avatar/foto circular do pet com suporte ao clique para ampliação, código, raça, porte, idade em meses, data de resgate, saúde, status com badge colorida e botões de ação (Visualizar, Editar, Excluir).
+- **Modal de Ampliação:** tela pop-up para visualização da foto do pet em tamanho expandido.
 
-Os itens do menu deverão possuir nomes claros e, quando apropriado, elementos visuais que facilitem sua identificação.
-
-A área de conteúdo deverá possuir espaço suficiente para que as páginas dos módulos possam ser desenvolvidas posteriormente.
+A interface mantém a identidade visual definida para o Porto Seguro Pet, utilizando a paleta com grafite (`#342D29` / `#3E4149`), creme (`#FAF6F0` / `#F4E7D5`) e terracota (`#684638` / `#D78A45`).
 
 ## Navegação
 
-Os itens do menu serão apresentados como pontos de acesso aos respectivos módulos.
+Os itens do menu funcionam como seletores dinâmicos de tela no estado da aplicação (`LoginState.tela_atual`).
 
-Nesta primeira implementação, será criada a estrutura visual do menu permanentemente aberto e da área de conteúdo. As funcionalidades internas dos módulos e a navegação para suas respectivas páginas serão implementadas posteriormente.
-
-A navegação poderá ser expandida conforme cada módulo for desenvolvido.
+A seleção do módulo **Gestão de Animais** renderiza a interface interativa integrada à API do Xano via token de autenticação JWT, permitindo operações completas de criação, leitura, atualização e exclusão (CRUD).

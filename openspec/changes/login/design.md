@@ -1,62 +1,55 @@
+# Design: Login
+
 ## Context
 
-O projeto utiliza Reflex no frontend e Xano no backend. A entidade `USUARIO` concentra os dados necessários para o acesso ao sistema, incluindo e-mail, senha e tipo de usuário. A change utilizará essa estrutura para implementar o acesso sem criar uma estrutura paralela de autenticação.
+O projeto utiliza Reflex no frontend e Xano no backend[cite: 1]. A entidade `USUARIO` concentra os dados necessários para o acesso ao sistema, incluindo e-mail, senha e tipo de usuário[cite: 19]. A change utiliza essa estrutura para implementar o acesso e direcionamento sem criar uma estrutura paralela de autenticação[cite: 1, 16].
 
-## Goals / Non-Goals
+## Goals 
 
 **Goals:**
-- Criar uma única interface de login para os usuários do sistema.
-- Utilizar o Xano como backend responsável pela autenticação.
-- Utilizar o tipo de usuário para diferenciar TUTOR/ADOTANTE e ADMINISTRADOR após o login.
-- Manter a solução simples, evitando estruturas de autenticação duplicadas.
-- Permitir que a identidade visual da tela seja refinada posteriormente sem alterar a lógica de autenticação.
+- Criar uma única interface de login para os usuários do sistema[cite: 1].
+- Exibir um carrossel visual automático com fotos de animais na lateral da tela de login para enriquecer a experiência do usuário[cite: 1].
+- Utilizar o Xano como backend responsável pela autenticação[cite: 1].
+- Utilizar o tipo de usuário para diferenciar TUTOR/ADOTANTE e ADMINISTRADOR e direcionar para suas respectivas áreas após o login[cite: 1].
+- Manter a solução simples, utilizando o estado global do Reflex (`LoginState`)[cite: 1].
+- Disponibilizar interfaces visuais de suporte (recuperação e alteração de senha) com avisos orientativos[cite: 1].
 
-**Non-Goals:**
-- Criar as áreas internas do TUTOR/ADOTANTE ou ADMINISTRADOR.
-- Implementar recuperação de senha.
-- Implementar cadastro de novos usuários nesta change.
-- Criar funcionalidades específicas de adoção ou administração.
-- Definir endpoints específicos do Xano neste momento.
+## Non-Goals:
+- Implementar a lógica de backend completa para envio de e-mails de recuperação de senha nesta change[cite: 1].
+- Implementar formulário de auto-cadastro de novos usuários nesta change.
+- Criar funcionalidades específicas de adoção ou administração na tela de login.
 
 ## Decisions
 
-### Uma única tela de login
+### Uma única tela de login com carrossel visual
 
-Será utilizada uma única tela para os dois tipos de usuário. O usuário informará e-mail e senha, e o sistema identificará seu tipo de usuário após a autenticação.
+Será utilizada uma única tela para os dois tipos de usuário. A interface é dividida em duas colunas: a esquerda apresenta um carrossel automático de imagens de animais com animação e a direita contém o formulário de login (`email` e `senha`) com fundo personalizado[cite: 1].
 
-**Alternativa considerada:** criar uma tela de login separada para cada tipo de usuário. Essa opção foi descartada para manter o fluxo mais simples e evitar duplicação.
+### Carrossel automático no Reflex
 
-### Reflex como camada de interface
-
-A interface de login será construída utilizando os recursos do Reflex já configurados no projeto.
-
-A implementação deverá separar a apresentação visual da lógica de autenticação, permitindo posteriormente ajustar cores, tipografia, elementos visuais e demais aspectos da identidade da tela sem alterar as regras de autenticação.
-
-**Alternativa considerada:** criar uma página HTML independente. Essa opção não será utilizada porque o frontend definido para o projeto é Reflex.
+O carrossel utiliza imagens de animais configuradas no estado (`fotos_carrossel`), com transição automática por tempo via evento assíncrono em segundo plano (`iniciar_carrossel_automatico`), além de suporte à navegação[cite: 1].
 
 ### Xano como backend de autenticação
 
-A autenticação será realizada pelo backend em Xano. O frontend não deverá manter uma estrutura própria de usuários paralela à entidade `USUARIO`.
+A autenticação é realizada pelo backend em Xano via requisição `POST` no endpoint de login[cite: 1]. O token retornado é utilizado na consulta do usuário (`GET /auth/me`) para identificar o `tipo_usuario` e o vínculo com a tabela `TUTOR_ADOTANTE`[cite: 1].
 
-**Alternativa considerada:** implementar a autenticação diretamente no frontend. Essa opção foi descartada porque a autenticação deve ser realizada no backend.
+### Identificação e direcionamento pelo tipo de usuário
 
-### Identificação pelo tipo de usuário
-
-Após uma autenticação válida, o sistema utilizará o `tipo_usuario` associado à conta para identificar se o usuário é TUTOR/ADOTANTE ou ADMINISTRADOR.
-
-O direcionamento para as áreas correspondentes será tratado na implementação da aplicação, respeitando a identificação definida na especificação.
+Após uma autenticação válida, o sistema utiliza o `tipo_usuario` para redirecionar o usuário:
+- `administrador` → redirecionado para a rota `/administrativo`[cite: 1].
+- `tutor/adotante` → redirecionado para a rota `/tutor`[cite: 1].
 
 ## Risks / Trade-offs
 
-- [Dependência do backend] → A autenticação dependerá da disponibilidade e configuração do Xano.
-- [Evolução da interface] → Alterações visuais poderão ocorrer posteriormente sem modificar a lógica de autenticação.
-- [Escopo inicial reduzido] → Funcionalidades como recuperação de senha e cadastro não fazem parte desta change e deverão ser tratadas separadamente caso sejam necessárias.
+- [Dependência do backend] → A autenticação depende da disponibilidade e configuração dos endpoints do Xano (`XANO_LOGIN_URL` e `XANO_ME_URL`)[cite: 1].
+- [Imagens externas do carrossel] → O carrossel depende do carregamento de URLs de imagens[cite: 1].
+- [Escopo de recuperação de senha] → As telas de alteração e recuperação de senha funcionam no nível visual/simulado com feedback por `rx.toast` até a futura integração dos endpoints[cite: 1].
 
 ## Migration Plan
 
-Como o Login será uma nova funcionalidade, não há migração de dados prevista nesta change.
+Como o Login é a porta de entrada da aplicação, a página está registrada e ativa na rota principal `/`[cite: 1].
 
-A implementação será feita inicialmente no frontend e integrada ao backend conforme a estrutura de autenticação do projeto estiver disponível.
+A implementação já se encontra integrada com o backend Xano e direciona corretamente para `/administrativo` e `/tutor`[cite: 1].
 
 ## Open Questions
 
