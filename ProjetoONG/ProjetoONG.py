@@ -1,9 +1,29 @@
+# 1. TOPO DO ARQUIVO: Configuração do caminho + Importações de bibliotecas e páginas
 import os
+import sys
 import httpx
 import asyncio
 import reflex as rx
 from dotenv import load_dotenv
 from ProjetoONG.gestao_animal import gestao_animal
+from ProjetoONG.alterar_senha import ChangePasswordState, formulario_alterar_senha, alterar_senha_page
+from ProjetoONG.modulos_administracao.tela_adocoes import adocoes_page
+from ProjetoONG.state.voluntarios_state import VoluntariosState
+
+from ProjetoONG.modulos_administracao.menu_administrativo import (
+    sidebar_administracao,
+)
+from ProjetoONG.modulos_administracao.pos_adocao import pos_adocao
+from ProjetoONG.modulos_administracao.tela_atendimento_veterinario import (
+    atendimento_veterinario_page,
+)
+from ProjetoONG.state.lares_temporarios_state import LaresTemporariosState
+from ProjetoONG.modulos_administracao.tela_doacoes import doacoes_page
+from ProjetoONG.modulos_administracao.tela_voluntarios import voluntarios_page
+from ProjetoONG.modulos_administracao.tela_lares_temporarios import (
+    lares_temporarios_page,
+)
+from ProjetoONG.state.doacoes_state import DoacoesState
 load_dotenv()
 
 # URLs de integração com a API do Xano
@@ -396,6 +416,7 @@ def index() -> rx.Component:
                 rx.input(placeholder="E-mail", type="email", on_change=LoginState.set_email, width="50%", radius="large"),
                 rx.input(placeholder="Senha", type="password", on_change=LoginState.set_senha, width="50%", radius="large"),
                 rx.button("Entrar", on_click=LoginState.validar_login, width="50%", background="#D78A45", color="white", radius="large"),
+               
                 spacing="4", align="center", width="80%", max_width="380px", padding="30px",
                 background="rgba(255, 247, 237, 0.50)", border_radius="20px", box_shadow="0 8px 30px rgba(0,0,0,0.05)",
             ),
@@ -423,131 +444,291 @@ def painel_autenticacao(conteudo: rx.Component) -> rx.Component:
     )
 
 
-def recuperar_senha() -> rx.Component:
-    return painel_autenticacao(
-        rx.vstack(
-            rx.heading("Recuperar senha", size="6", color="#3E4149"),
-            rx.text("Informe o e-mail cadastrado na sua conta.", size="3", color="#5E5A55"),
-            rx.input(placeholder="E-mail", type="email", width="100%", radius="large"),
-            rx.button("Solicitar recuperação", on_click=LoginState.avisar_recuperacao_visual, width="100%", background="#D78A45", color="white", radius="large"),
-            rx.text("Esta tela é apenas visual. Nenhuma solicitação será enviada.", size="1", color="#766A62"),
-            rx.link("Voltar ao login", href="/", color="#684638", size="2", align_self="center"),
-            spacing="4", align="stretch", width="80%", max_width="400px",
-        )
-    )
-
-
-def alterar_senha() -> rx.Component:
-    return painel_autenticacao(
-        rx.vstack(
-            rx.heading("Alterar senha", size="6", color="#3E4149"),
-            rx.text("Preencha os campos para alterar sua senha.", size="3", color="#5E5A55"),
-            rx.input(placeholder="Senha atual", type="password", width="100%", radius="large"),
-            rx.input(placeholder="Nova senha", type="password", width="100%", radius="large"),
-            rx.input(placeholder="Confirme a nova senha", type="password", width="100%", radius="large"),
-            rx.button("Salvar nova senha", on_click=LoginState.avisar_alteracao_visual, width="100%", background="#D78A45", color="white", radius="large"),
-            rx.text("Esta tela é apenas visual. Nenhuma senha será alterada.", size="1", color="#766A62"),
-            rx.link("Voltar ao login", href="/", color="#684638", size="2", align_self="center"),
-            spacing="4", align="stretch", width="80%", max_width="400px",
-        )
-    )
-
-
 # ==============================================================================
-# ÁREA ADMINISTRATIVA ORIGINAL (INTACTA E PRESERVADA)
+# ÁREA ADMINISTRATIVA 
 # ==============================================================================
 def item_menu(icone: str, texto: str, tela: str = "") -> rx.Component:
     ativo = LoginState.tela_atual == tela
     return rx.hstack(
-        rx.icon(icone, size=18, color=rx.cond(ativo, "#684638", "#766A62")),
-        rx.text(texto, size="2", weight=rx.cond(ativo, "bold", "medium"), color=rx.cond(ativo, "#342D29", "#5E5A55")),
-        spacing="3", align="center", width="100%", padding="10px 12px", border_radius="10px",
-        cursor="pointer", background=rx.cond(ativo, "#FFFFFF", "transparent"),
-        box_shadow=rx.cond(ativo, "0 1px 3px rgba(104, 70, 56, 0.15)", "none"),
-        transition="background 0.15s ease", _hover={"background": "rgba(255, 255, 255, 0.65)"},
+       rx.icon(
+           icone,
+           size=20 if icone == "stethoscope" else 18,
+           color=rx.cond(ativo, "#58392B", "#64748B"),
+        ),
+        rx.text(
+            texto,
+            size="2",
+            weight=rx.cond(ativo, "bold", "medium"),
+            color=rx.cond(ativo, "#2D1F18", "#52433D"),
+            white_space="nowrap",
+        ),
+        spacing="3",
+        align="center",
+        width="100%",
+        padding="10px 14px",
+        border_radius="10px",
+        cursor="pointer",
+        background=rx.cond(ativo, "#FFFFFF", "transparent"),
+        box_shadow=rx.cond(ativo, "0 1px 3px rgba(0, 0, 0, 0.05)", "none"),
+        transition="background 0.15s ease",
+        _hover={"background": rx.cond(ativo, "#FFFFFF", "#F5EFE6")},
         on_click=LoginState.set_tela(tela) if tela else None,
     )
 
 
 def titulo_secao_menu(texto: str) -> rx.Component:
     return rx.text(
-        texto, size="1", weight="bold", color="#9A8C82",
-        letter_spacing="0.08em", padding="14px 12px 4px 12px",
+        texto,
+        size="1",
+        weight="bold",
+        color="#9E8C82",
+        letter_spacing="0.08em",
+        padding="10px 8px 2px 8px",
     )
 
 
 def menu_lateral() -> rx.Component:
     return rx.vstack(
+        # Logotipo / Brand
         rx.hstack(
             rx.center(
-                rx.icon("paw-print", size=22, color="white"),
-                background="#684638", border_radius="12px", width="42px", height="42px", flex_shrink="0",
+                rx.icon("paw-print", size=20, color="white"),
+                background="#58392B",
+                border_radius="10px",
+                width="34px",
+                height="34px",
+                flex_shrink="0",
             ),
             rx.vstack(
-                rx.text("Porto Seguro Pet", size="4", weight="bold", color="#342D29"),
-                rx.text("Painel administrativo", size="1", color="#766A62"),
-                spacing="0", align="start",
+                rx.text("Porto Seguro Pet", size="3", weight="bold", color="#2D1F18"),
+                rx.text("Painel administrativo", size="1", color="#78675E"),
+                spacing="0",
+                align="start",
             ),
-            spacing="3", align="center", padding="4px 4px 16px 4px", width="100%",
+            spacing="3",
+            align="center",
+            padding="4px 4px 14px 4px",
+            width="100%",
         ),
-        rx.divider(color_scheme="brown", opacity="0.4"),
+        # CATEGORIAS DO MENU
         titulo_secao_menu("PRINCIPAL"),
         item_menu("layout-dashboard", "Início", "inicio"),
-        item_menu("paw-print", "Gestão de Animais", "animais"),
-        item_menu("bed-double", "Lares Temporários"),
+           rx.link(
+             item_menu("paw-print", "Gestão de Animais"),
+             href="/animais",
+             underline="none",
+             width="100%",
+            ),
+        item_menu("home", "Lares Temporários"),
         titulo_secao_menu("ATENDIMENTO"),
-        item_menu("stethoscope", "Atendimento Veterinário"),
-        item_menu("heart-handshake", "Adoções"),
+       rx.link(
+           item_menu("heart", "Atendimento Veterinário"),
+            href="/atendimento-vet",
+            underline="none",
+            width="100%",
+        ),
+        rx.link(
+            item_menu("heart", "Adoções"),
+            href="/adocoes",
+            underline="none",
+            width="100%",
+        ),
         item_menu("clipboard-check", "Pós-Adoção"),
         titulo_secao_menu("ADMINISTRAÇÃO"),
         item_menu("users", "Voluntários"),
-        item_menu("package", "Estoque"),
         item_menu("wallet", "Doações"),
-        spacing="1", align="stretch", width="280px", min_width="280px",
-        height="100vh", padding="24px 16px", background="#F4E7D5",
-        border_right="1px solid #EAE1D7", overflow_y="auto",
+        spacing="1",
+        align="stretch",
+        width="100%",
+        height="100vh",
+        overflow_y="auto",
+        position="sticky",
+        top="0",
+        padding="16px 12px",
+        background="#EFE6DA",
+        border_right="1px solid #E2D7C7",
+        box_sizing="border-box",
+    )
+
+def pagina_gestao_animais() -> rx.Component:
+    return rx.box(
+        rx.flex(
+            # Menu lateral
+            rx.box(
+                sidebar_administracao(),
+                width="260px",
+                min_width="260px",
+                height="100vh",
+                position="sticky",
+                top="0",
+            ),
+            # Conteúdo principal
+            rx.box(
+                gestao_animal(LoginState.token),
+                flex="1",
+                padding="24px 32px",
+                overflow_y="auto",
+                min_width="0",
+            ),
+            width="100%",
+            align="start",
+        ),
+        background="#F8F3EC",
+        min_height="100vh",
+        width="100%",
     )
 
 
 def area_administrativa() -> rx.Component:
-    return rx.hstack(
-        menu_lateral(),
-        rx.vstack(
-            rx.hstack(
-                rx.spacer(),
-                rx.button("Sair", on_click=LoginState.sair, color="#FFFFFF", background="#684638"),
-                width="100%", align="center", padding="20px 24px",
-            ),
-            rx.box(
-                rx.cond(
-                    LoginState.tela_atual == "animais",
-                    gestao_animal(LoginState.token),
-                    rx.vstack(
-                        rx.text("Bem-vindo à área administrativa!", size="8", weight="bold", color="#3E4149"),
-                        rx.text("Proteção, cuidado e novas oportunidades.", size="4", color="#6D896F"),
-                        rx.box(
-                            rx.vstack(
-                                rx.heading("Quem somos", size="5", color="#3E4149"),
-                                rx.text("Somos uma organização dedicada à proteção e ao cuidado dos animais, acompanhando sua trajetória do resgate à adoção responsável.", size="3", color="#5E5A55"),
-                                spacing="3", align="start", width="100%",
-                            ),
-                            background="#FFFFFF", padding="24px", border_radius="16px", width="100%", box_shadow="0 2px 10px rgba(62, 65, 73, 0.08)",
-                        ),
-                        rx.box(
-                            rx.vstack(
-                                rx.heading("Nossa missão", size="5", color="#3E4149"),
-                                rx.text("Promover o bem-estar animal por meio do resgate, dos cuidados necessários, do acolhimento temporário e da busca por lares responsáveis.", size="3", color="#5E5A55"),
-                                spacing="3", align="start", width="100%",
-                            ),
-                            background="#FFFFFF", padding="24px", border_radius="16px", width="100%", box_shadow="0 2px 10px rgba(62, 65, 73, 0.08)",
-                        ),
-                        spacing="5", align="center", justify="center", width="100%", max_width="760px", min_height="60vh", margin="0 auto", padding="24px",
+    return rx.grid(
+        sidebar_administracao(),
+        rx.box(
+            rx.vstack(
+                rx.hstack(
+                    rx.spacer(),
+                    rx.button(
+                        "Sair",
+                        on_click=LoginState.sair,
+                        color="#FFFFFF",
+                        background="#58392B",
+                        size="3",
+                        border_radius="10px",
+                        _hover={"background": "#422A1F"},
                     ),
+                    width="100%",
+                    align="center",
+                    margin_bottom="24px",
                 ),
-                width="100%", flex="1",
+                rx.box(
+                    rx.cond(
+                        LoginState.tela_atual == "animais",
+                        gestao_animal(LoginState.token),
+                        rx.vstack(
+                            rx.hstack(
+                                rx.vstack(
+                                    rx.text(
+                                        "BEM-VINDO(A) AO PORTO SEGURO PET",
+                                        font_size="13px",
+                                        font_weight="bold",
+                                        color="#78675E",
+                                        letter_spacing="1px",
+                                    ),
+                                    rx.heading(
+                                        "Bem-vindo à área administrativa!",
+                                        size="8",
+                                        color="#2D1F18",
+                                        weight="bold",
+                                    ),
+                                    rx.text(
+                                        "Proteção, cuidado e novas oportunidades.",
+                                        font_size="18px",
+                                        color="#78675E",
+                                    ),
+                                    align="start",
+                                    spacing="3",
+                                    flex="1",
+                                ),
+                                rx.image(
+                                    src="/animais-boas-vindas.gif",
+                                    alt="Cachorrinho e gatinho animados",
+                                    width="220px",
+                                    height="194px",
+                                    object_fit="contain",
+                                ),
+                                align="center",
+                                justify="between",
+                                spacing="5",
+                                width="100%",
+                            ),
+                            rx.grid(
+                                rx.box(
+                                    rx.vstack(
+                                        rx.icon(
+                                            "heart-handshake",
+                                            size=30,
+                                            color="#58392B",
+                                        ),
+                                        rx.heading(
+                                            "Quem somos",
+                                            size="6",
+                                            color="#2D1F18",
+                                        ),
+                                        rx.text(
+                                            "Somos uma organização dedicada à proteção e ao cuidado dos animais, acompanhando sua trajetória do resgate à adoção responsável.",
+                                            font_size="16px",
+                                            color="#52433D",
+                                            line_height="1.7",
+                                        ),
+                                        align="start",
+                                        spacing="3",
+                                        width="100%",
+                                    ),
+                                    background="#FFFFFF",
+                                    padding="28px",
+                                    border_radius="18px",
+                                    border="1px solid #EFE6DA",
+                                    width="100%",
+                                    box_shadow="0 3px 12px rgba(0,0,0,0.04)",
+                                ),
+                                rx.box(
+                                    rx.vstack(
+                                        rx.icon(
+                                            "paw-print",
+                                            size=30,
+                                            color="#58392B",
+                                        ),
+                                        rx.heading(
+                                            "Nossa missão",
+                                            size="6",
+                                            color="#2D1F18",
+                                        ),
+                                        rx.text(
+                                            "Promover o bem-estar animal por meio do resgate, dos cuidados necessários, do acolhimento temporário e da busca por lares responsáveis.",
+                                            font_size="16px",
+                                            color="#52433D",
+                                            line_height="1.7",
+                                        ),
+                                        align="start",
+                                        spacing="3",
+                                        width="100%",
+                                    ),
+                                    background="#FFFFFF",
+                                    padding="28px",
+                                    border_radius="18px",
+                                    border="1px solid #EFE6DA",
+                                    width="100%",
+                                    box_shadow="0 3px 12px rgba(0,0,0,0.04)",
+                                ),
+                                columns={"initial": "1", "md": "2"},
+                                spacing="4",
+                                width="100%",
+                            ),
+                            spacing="6",
+                            align="start",
+                            width="100%",
+                            max_width="1050px",
+                            margin="0 auto",
+                        ),
+                    ),
+                    width="100%",
+                    flex="1",
+                ),
+                spacing="0",
+                align="stretch",
+                width="100%",
             ),
-            spacing="0", align="stretch", flex="1", min_width="0", min_height="100vh", background="#FAF6F0",
+            padding="32px 40px",
+            background="#F8F3EC",
+            width="100%",
+            height="100vh",
+            overflow_y="auto",
+            box_sizing="border-box",
         ),
+        grid_template_columns="260px minmax(0, 1fr)",
+        width="100vw",
+        height="100vh",
+        overflow="hidden",
+        box_sizing="border-box",
     )
 
 
@@ -1316,6 +1497,19 @@ def pagina_meus_dados() -> rx.Component:
                 width="100%",
             ),
 
+            # ==========================================
+            # 3. CARTÃO DE ALTERAÇÃO DE SENHA INTEGRADO
+            # ==========================================
+            rx.box(
+                formulario_alterar_senha(),
+                padding="28px",
+                background="rgba(255, 255, 255, 0.95)",
+                border_radius="20px",
+                border="1px solid rgba(215, 138, 69, 0.2)",
+                box_shadow="0 4px 15px rgba(0,0,0,0.03)",
+                width="100%",
+            ),
+
             align="start",
             spacing="5",
             width="100%",
@@ -1484,12 +1678,49 @@ def pagina_orientacoes() -> rx.Component:
 app = rx.App()
 
 app.add_page(index, route="/", on_load=LoginState.iniciar_carrossel_automatico)
-app.add_page(recuperar_senha, route="/recuperar-senha")
-app.add_page(alterar_senha, route="/alterar-senha")
 app.add_page(area_administrativa, route="/administrativo")
-
+app.add_page(
+    pagina_gestao_animais,
+    route="/animais",
+    title="Gestão de Animais | Porto Seguro Pet",
+)
 app.add_page(area_tutor, route="/tutor", on_load=LoginState.carregar_adocoes)
 app.add_page(pagina_minhas_adocoes, route="/minhas-adocoes")
 app.add_page(pagina_acompanhamento, route="/acompanhamento")
 app.add_page(pagina_meus_dados, route="/meus-dados")
 app.add_page(pagina_orientacoes, route="/orientacoes")
+
+app.add_page(
+    lambda: alterar_senha_page(painel_autenticacao), 
+    route="/alterar-senha"
+)
+
+app.add_page(adocoes_page, route="/adocoes", title="Adoções | Porto Seguro Pet")
+app.add_page(pos_adocao, route="/pos-adocao", title="Pós-Adoção | Porto Seguro Pet")
+
+app.add_page(
+    atendimento_veterinario_page,
+    route="/atendimento-vet",
+    title="Atendimento Veterinário | Porto Seguro Pet",
+)
+
+app.add_page(
+    lares_temporarios_page,
+    route="/lares-temporarios",
+    title="Lares Temporários | Porto Seguro Pet",
+    on_load=LaresTemporariosState.on_load,
+)
+
+app.add_page(
+    doacoes_page,
+    route="/doacoes",
+    title="Doações | Porto Seguro Pet",
+    on_load=DoacoesState.carregar_doadores,
+)
+
+app.add_page(
+    voluntarios_page,
+    route="/voluntarios",
+    title="Voluntários | Porto Seguro Pet",
+    on_load=VoluntariosState.carregar_dados,
+)

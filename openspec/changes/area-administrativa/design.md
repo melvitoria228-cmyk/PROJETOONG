@@ -31,7 +31,6 @@ O menu lateral apresenta os seguintes itens divididos por categorias:
   - **Pós-Adoção**
 - **ADMINISTRAÇÃO:**
   - **Voluntários**
-  - **Estoque**
   - **Doações**
 
 O item **Início** apresenta a visão geral da ONG com informações sobre missão e valores.

@@ -26,14 +26,13 @@ A Área Administrativa apresenta os seguintes módulos divididos por seções no
   - **Pós-Adoção** — registros de acompanhamento dos animais adotados.
 - **ADMINISTRAÇÃO:**
   - **Voluntários** — gerenciamento do cadastro de voluntários e suas atividades.
-  - **Estoque** — controle dos suprimentos e movimentações.
-  - **Doações** — registros de doadores e doações financeiras.
+  - **Doações** — registros de doadores e doações recebidas.
 
 ## Fora do escopo
 
 Nesta etapa não estão implementados:
 
-- operações completas de cadastro e edição para os módulos que ainda não possuem endpoints ativos (Lares Temporários, Voluntários, Estoque, Doações, etc.);
+- operações completas de cadastro e edição para os módulos que ainda não possuem endpoints ativos (Lares Temporários, Voluntários, Doações, etc.);
 - upload direto de arquivos pesados de imagem para o servidor (utilizando o link de imagem via URL em texto no campo `foto_url`);
 - personalização de permissões administrativas por níveis de acesso.
 

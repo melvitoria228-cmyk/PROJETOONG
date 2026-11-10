@@ -19,7 +19,7 @@ A Área Administrativa SHALL apresentar os módulos principais organizados por c
 - **THEN** o sistema apresenta o menu lateral organizado nas seções:
   - **PRINCIPAL:** Início, Gestão de Animais, Lares Temporários
   - **ATENDIMENTO:** Atendimento Veterinário, Adoções, Pós-Adoção
-  - **ADMINISTRAÇÃO:** Voluntários, Estoque, Doações
+  - **ADMINISTRAÇÃO:** Voluntários, Doações
 
 ### Requirement: Representação das áreas do sistema
 
@@ -36,7 +36,6 @@ As áreas são:
 - **Adoções:** `PROCESSO_ADOCAO` e `TUTOR_ADOTANTE`
 - **Pós-Adoção:** `ACOMPANHAMENTO_POS_ADOCAO`
 - **Voluntários:** `VOLUNTARIO`, `ATIVIDADE` e `VOLUNTARIO_ATIVIDADE`
-- **Estoque:** `ESTOQUE_SUPRIMENTOS` e `MOVIMENTACAO_ESTOQUE`
 - **Doações:** `DOADOR` e `DOACAO`
 
 ### Requirement: Módulo de Gestão de Animais

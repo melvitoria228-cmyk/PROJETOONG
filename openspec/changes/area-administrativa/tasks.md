@@ -3,7 +3,7 @@
 - [x] 1.1 Criar a função e a rota `/administrativo` no frontend Reflex para a Área Administrativa.
 - [x] 1.2 Implementar o menu lateral fixo (sempre aberto) dividido nas seções PRINCIPAL, ATENDIMENTO e ADMINISTRAÇÃO com fundo `#F4E7D5`.
 - [x] 1.3 Adicionar a identificação da marca Porto Seguro Pet com ícone institucional e atalho de saída (*logout*).
-- [x] 1.4 Organizar os itens do menu (Início, Gestão de Animais, Lares Temporários, Atendimento Veterinário, Adoções, Pós-Adoção, Voluntários, Estoque, Doações).
+- [x] 1.4 Organizar os itens do menu (Início, Gestão de Animais, Lares Temporários, Atendimento Veterinário, Adoções, Pós-Adoção, Voluntários, Doações).
 - [x] 1.5 Aplicar a paleta institucional com grafite (`#342D29` / `#3E4149`), creme (`#FAF6F0` / `#F4E7D5`) e terracota (`#684638` / `#D78A45`).
 - [x] 1.6 Implementar a seleção dinâmica de telas no menu lateral através de `LoginState.tela_atual`.
 

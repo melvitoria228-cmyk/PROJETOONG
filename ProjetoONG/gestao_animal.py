@@ -619,9 +619,9 @@ def cartao_resumo(titulo: str, numero, descricao: str, icone: str, cor: str):
             background=COR_DESTAQUE, border_radius="12px", width="46px", height="46px", flex_shrink="0",
         ),
         rx.vstack(
-            rx.text(titulo, color=COR_SECUNDARIA, size="2", weight="medium"),
+            rx.text(titulo, color="#422A1F", font_size="17px", weight="bold"),
             rx.heading(numero, size="7", color=COR_TEXTO),
-            rx.text(descricao, color=COR_SECUNDARIA, size="1"),
+            rx.text(descricao, color="#422A1F", font_size="16px"),
             spacing="0", align="start",
         ),
         spacing="3", align="center", padding="18px", background="white",
@@ -674,21 +674,21 @@ def avatar_especie(animal: rx.Var[dict[str, str]]):
     )
 
 
-def celula(conteudo): return rx.table.cell(conteudo, vertical_align="middle")
+def celula(conteudo): return rx.table.cell(conteudo, vertical_align="middle", padding="12px")
 
-def texto_celula(valor): return celula(rx.text(valor, color=COR_TEXTO, size="2"))
+def texto_celula(valor): return celula(rx.text(valor, color="#342D29", font_size="18px"))
 
 
 def linha_animal(animal: rx.Var[dict[str, str]]):
     """Linha individual renderizada na tabela de gestão de animais."""
     return rx.table.row(
-        celula(rx.text(animal["codigo"], color=COR_SECUNDARIA, size="2")),
+        celula(rx.text(animal["codigo"], color="#422A1F", font_size="16px")),
         celula(
             rx.hstack(
                 avatar_especie(animal),
                 rx.vstack(
-                    rx.text(animal["nome"], color=COR_TEXTO, weight="bold"),
-                    rx.text(animal["especie"] + " · " + animal["sexo"], color=COR_SECUNDARIA, size="1"),
+                    rx.text(animal["nome"], color="#2D1F18", font_size="19px", weight="bold"),
+                    rx.text(animal["especie"] + " · " + animal["sexo"], color="#52433D", font_size="16px"),
                     align="start", spacing="0",
                 ),
                 spacing="3", align="center",
@@ -737,7 +737,7 @@ def estado_vazio():
                 background=COR_DESTAQUE, border_radius="50%", width="60px", height="60px",
             ),
             rx.heading("Nenhum animal encontrado", size="4", color=COR_TEXTO),
-            rx.text("Ajuste a busca ou os filtros, ou cadastre um novo animal.", color=COR_SECUNDARIA, size="2"),
+            rx.text("Ajuste a busca ou os filtros, ou cadastre um novo animal.", color=COR_SECUNDARIA, font_size="15px"),
             rx.cond(
                 AnimalState.tem_filtro,
                 rx.button("Limpar filtros", variant="outline", color_scheme="brown", on_click=AnimalState.limpar_filtros),
@@ -776,15 +776,15 @@ def tabela_animais():
         rx.table.root(
             rx.table.header(
                 rx.table.row(
-                    rx.table.column_header_cell("Código"),
-                    rx.table.column_header_cell("Animal"),
-                    rx.table.column_header_cell("Raça"),
-                    rx.table.column_header_cell("Porte"),
-                    rx.table.column_header_cell("Idade"),
-                    rx.table.column_header_cell("Resgate"),
-                    rx.table.column_header_cell("Saúde"),
-                    rx.table.column_header_cell("Status"),
-                    rx.table.column_header_cell("Ações"),
+                    rx.table.column_header_cell(rx.text("Código", font_size="18px", font_weight="bold", color="#2D1F18")),
+                    rx.table.column_header_cell(rx.text("Animal", font_size="18px", font_weight="bold", color="#2D1F18")),
+                    rx.table.column_header_cell(rx.text("Raça", font_size="18px", font_weight="bold", color="#2D1F18")),
+                    rx.table.column_header_cell(rx.text("Porte", font_size="18px", font_weight="bold", color="#2D1F18")),
+                    rx.table.column_header_cell(rx.text("Idade", font_size="18px", font_weight="bold", color="#2D1F18")),
+                    rx.table.column_header_cell(rx.text("Resgate", font_size="18px", font_weight="bold", color="#2D1F18")),
+                    rx.table.column_header_cell(rx.text("Saúde", font_size="18px", font_weight="bold", color="#2D1F18")),
+                    rx.table.column_header_cell(rx.text("Status", font_size="18px", font_weight="bold", color="#2D1F18")),
+                    rx.table.column_header_cell(rx.text("Ações", font_size="18px", font_weight="bold", color="#2D1F18")),
                 )
             ),
             rx.table.body(rx.foreach(AnimalState.animais_pagina, linha_animal)),
@@ -796,7 +796,7 @@ def tabela_animais():
 
 def campo(rotulo: str, componente):
     return rx.vstack(
-        rx.text(rotulo, size="2", weight="medium", color=COR_TEXTO),
+        rx.text(rotulo, font_size="16px", weight="bold", color="#342D29"),
         componente, spacing="1", align="stretch", width="100%",
     )
 
@@ -960,7 +960,7 @@ def gestao_animal(token) -> rx.Component:
         rx.hstack(
             rx.vstack(
                 rx.heading("Gestão de Animais", size="8", color=COR_TEXTO),
-                rx.text("Organize os cadastros e acompanhe cada animal resgatado.", color=COR_SECUNDARIA, size="3"),
+                rx.text("Organize os cadastros e acompanhe cada animal resgatado.", color="#342D29", font_size="16px"),
                 align="start", spacing="2",
             ),
             rx.spacer(),
@@ -982,7 +982,7 @@ def gestao_animal(token) -> rx.Component:
             rx.hstack(
                 rx.vstack(
                     rx.heading("Animais cadastrados", size="5", color=COR_TEXTO),
-                    rx.text("Consulte os registros da ONG.", size="2", color=COR_SECUNDARIA),
+                    rx.text("Consulte os registros da ONG.", font_size="16px", color="#342D29"),
                     align="start", spacing="1",
                 ),
                 rx.spacer(),
@@ -993,7 +993,7 @@ def gestao_animal(token) -> rx.Component:
                     ),
                     content="Atualizar lista",
                 ),
-                rx.badge(AnimalState.total_filtrado.to_string() + " registros", background=COR_DESTAQUE, color=COR_PRINCIPAL, padding="8px 12px"),
+                rx.badge(AnimalState.total_filtrado.to_string() + " registros", background=COR_DESTAQUE, color=COR_PRINCIPAL, padding="8px 12px", font_size="15px"),
                 width="100%", align="center", wrap="wrap", spacing="3",
             ),
             rx.hstack(
@@ -1020,9 +1020,9 @@ def gestao_animal(token) -> rx.Component:
                 ),
             ),
             rx.hstack(
-                rx.text(AnimalState.texto_exibicao, color=COR_SECUNDARIA, size="2"),
+                rx.text(AnimalState.texto_exibicao, color=COR_SECUNDARIA, font_size="16px"),
                 rx.spacer(),
-                rx.text("Página " + AnimalState.pagina.to_string() + " de " + AnimalState.total_paginas.to_string(), color=COR_SECUNDARIA, size="2"),
+                rx.text("Página " + AnimalState.pagina.to_string() + " de " + AnimalState.total_paginas.to_string(), color=COR_SECUNDARIA, font_size="16px"),
                 rx.button("Anterior", variant="outline", color_scheme="gray", size="2", disabled=AnimalState.pagina <= 1, on_click=AnimalState.pagina_anterior),
                 rx.button("Próxima", variant="outline", color_scheme="gray", size="2", disabled=AnimalState.pagina >= AnimalState.total_paginas, on_click=AnimalState.pagina_seguinte),
                 width="100%", align="center", wrap="wrap", spacing="3",
