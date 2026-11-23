@@ -8,6 +8,7 @@ URL_POST_PROCESSO = "https://x8ki-letl-twmt.n7.xano.io/api:Ad2Yak5N/admin/proces
 URL_PATCH_PROCESSO = "https://x8ki-letl-twmt.n7.xano.io/api:Ad2Yak5N/admin/processo/adocao/update"
 URL_GET_TUTORES = "https://x8ki-letl-twmt.n7.xano.io/api:Ad2Yak5N/admin/tutor_adotante"
 
+
 class AdocoesState(rx.State):
     """Estado do Módulo de Adoções integrado ao Xano."""
 
@@ -19,19 +20,17 @@ class AdocoesState(rx.State):
     filtro_status: str = "Todos"
     opcoes_status: List[str] = [
         "Todos",
-        "Aguardando Aprovação",
-        "Em Análise",
-        "Em processo",
-        "realizado",
+        "Em análise",
+        "Mais informações necessárias",
         "Aprovada",
-        "Revisão Pendente",
-        "Recusada",
+        "Adoção efetivada",
+        "Não aprovada",
     ]
 
     # --- DADOS DAS SOLICITAÇÕES ---
     solicitacoes: List[Dict[str, str]] = []
     solicitacao_selecionada: Dict[str, str] = {"id": ""}
-    
+
     # Lista de tutores do Xano
     tutores: List[Dict[str, Any]] = []
 
@@ -39,7 +38,7 @@ class AdocoesState(rx.State):
     is_loading: bool = False
     error_message: str = ""
 
-    # --- CARREGAMENTO INICIAL DIRETO (SEM HEADERS/TOKEN) ---
+    # --- CARREGAMENTO INICIAL DIRETO ---
     async def on_load(self):
         """Carrega os dados dos endpoints do Xano ao abrir a página."""
         self.is_loading = True
@@ -48,20 +47,38 @@ class AdocoesState(rx.State):
         async with httpx.AsyncClient() as client:
             try:
                 res_proc = await client.get(URL_GET_PROCESSOS)
-                
+
                 if res_proc.status_code == 200:
                     raw_data = res_proc.json()
-                    
+
                     normalizados = []
                     for item in raw_data:
                         animal = item.get("_animal_1") or item.get("_animal") or {}
                         tutor = item.get("_tutor_adotante") or {}
-                        
+
                         # Ignora registros vazios/incompletos
                         if not animal and not tutor.get("nome"):
                             continue
 
-                        foto_pet = animal.get("foto_url") or "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400"
+                        foto_pet = (
+                            animal.get("foto_url")
+                            or "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400"
+                        )
+
+                        especie = str(animal.get("especie") or "").strip()
+                        raca = str(animal.get("raca") or "").strip()
+                        especie_raca = " • ".join(p for p in (especie, raca) if p) or "Não informado"
+
+                        porte = str(animal.get("porte") or "").strip()
+                        sexo = str(animal.get("sexo") or "").strip()
+                        porte_sexo = " • ".join(p for p in (porte, sexo) if p) or "Não informado"
+
+                        alergias = str(animal.get("alergias") or "").strip()
+                        restricoes = str(animal.get("restricoes_clinicas") or "").strip()
+                        cuidados = " | ".join(
+                            p for p in (alergias, restricoes)
+                            if p and p.lower() not in ("nenhuma", "nenhuma conhecida")
+                        ) or "Sem restrições"
 
                         normalizados.append({
                             "id": str(item.get("id", "")),
@@ -71,18 +88,19 @@ class AdocoesState(rx.State):
                             "email": str(tutor.get("email") or "Não informado"),
                             "endereco": str(tutor.get("endereco") or "Não informado"),
                             "data": str(item.get("data_inicio") or item.get("data_solicitacao") or "N/A"),
-                            "status": str(item.get("status_processo") or "Em Análise"),
+                            "status": str(item.get("status_processo") or "Em análise"),
                             "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100",
                             "foto_detalhe": str(foto_pet),
-                            
+
                             # Dados reais vindos do Add-on _animal_1
                             "pet_nome": str(animal.get("nome") or "Sem Nome"),
-                            "pet_especie": f"{animal.get('especie', '')}, {animal.get('raca', '')}".strip(", "),
-                            "pet_detalhes": f"{animal.get('sexo', '')}, {animal.get('porte', '')}",
+                            "pet_status": str(animal.get("status_atual") or "Disponível"),
+                            "pet_especie": especie_raca,
+                            "pet_detalhes": porte_sexo,
                             "pet_saude": str(animal.get("condicao_saude") or "Saudável"),
-                            "pet_personalidade": str(animal.get("status_atual") or "Normal"),
-                            "pet_historico": str(animal.get("descricao") or "Sem histórico registrado"),
-                            
+                            "pet_descricao": str(animal.get("descricao") or "Sem descrição registrada"),
+                            "pet_cuidados": cuidados,
+
                             "exp_animal": "Sim",
                             "lar_tipo": str(tutor.get("tipo_residencia") or "Casa"),
                             "lar_familia": "Não informado",
@@ -91,7 +109,7 @@ class AdocoesState(rx.State):
                             "check_espaco": "Sim",
                             "check_outros": "Não",
                         })
-                    
+
                     self.solicitacoes = normalizados
                     if self.solicitacoes:
                         self.solicitacao_selecionada = dict(self.solicitacoes[0])
@@ -115,7 +133,7 @@ class AdocoesState(rx.State):
 
         payload = {
             "processo_adocao_id": int(sol_id),
-            "status_processo": novo_status
+            "status_processo": novo_status,
         }
 
         async with httpx.AsyncClient() as client:
@@ -125,7 +143,16 @@ class AdocoesState(rx.State):
                     atualizadas: List[Dict[str, str]] = []
                     for item in self.solicitacoes:
                         if item["id"] == sol_id:
-                            item = {**item, "status": novo_status}
+                            novo_pet_status = (
+                                "Adotado"
+                                if novo_status == "Adoção efetivada"
+                                else item["pet_status"]
+                            )
+                            item = {
+                                **item,
+                                "status": novo_status,
+                                "pet_status": novo_pet_status,
+                            }
                             self.solicitacao_selecionada = dict(item)
                         atualizadas.append(item)
                     self.solicitacoes = atualizadas
@@ -153,7 +180,9 @@ class AdocoesState(rx.State):
         resultado = self.solicitacoes
         if self.filtro_status != "Todos":
             resultado = [
-                item for item in resultado if item["status"] == self.filtro_status
+                item
+                for item in resultado
+                if item["status"].lower() == self.filtro_status.lower()
             ]
         if self.filtro_texto:
             termo = self.filtro_texto.lower()
@@ -171,29 +200,44 @@ class AdocoesState(rx.State):
 
     @rx.var
     def pendentes_aprovacao(self) -> int:
-        return len([s for s in self.solicitacoes if s["status"] in ("Aguardando Aprovação", "Em processo")])
+        return len([
+            s for s in self.solicitacoes
+            if s["status"].lower() in ("aguardando aprovação", "em análise", "em processo")
+        ])
 
     @rx.var
     def aguardando_info(self) -> int:
-        return len([s for s in self.solicitacoes if s["status"] == "Revisão Pendente"])
+        return len([
+            s for s in self.solicitacoes
+            if s["status"].lower() in ("revisão pendente", "mais informações necessárias")
+        ])
 
     @rx.var
     def em_processo(self) -> int:
-        return len(
-            [
-                s
-                for s in self.solicitacoes
-                if s["status"] in ("Aguardando Aprovação", "Em Análise", "Em processo", "Revisão Pendente")
-            ]
-        )
+        return len([
+            s for s in self.solicitacoes
+            if s["status"].lower() in (
+                "aguardando aprovação",
+                "em análise",
+                "em processo",
+                "revisão pendente",
+                "mais informações necessárias",
+            )
+        ])
 
     @rx.var
     def aprovadas(self) -> int:
-        return len([s for s in self.solicitacoes if s["status"] in ("Aprovada", "realizado")])
+        return len([
+            s for s in self.solicitacoes
+            if s["status"].lower() in ("aprovada", "adoção efetivada", "realizado")
+        ])
 
     @rx.var
     def recusadas(self) -> int:
-        return len([s for s in self.solicitacoes if s["status"] == "Recusada"])
+        return len([
+            s for s in self.solicitacoes
+            if s["status"].lower() in ("recusada", "não aprovada")
+        ])
 
     @rx.var
     def tem_muitas_solicitacoes(self) -> bool:

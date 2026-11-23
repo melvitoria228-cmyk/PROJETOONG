@@ -7,22 +7,32 @@ from ProjetoONG.modulos_administracao.menu_administrativo import (
 
 
 # ============================================================
-# PALETA VISUAL
+# PALETA VISUAL OFICIAL (PORTO SEGURO PET)
 # ============================================================
 
-COR_PRINCIPAL = "#58392B"
-COR_PRINCIPAL_HOVER = "#422A1F"
-COR_TITULO = "#2D1F18"
-COR_TEXTO = "#52433D"
-COR_TEXTO_CLARO = "#66534A"
-COR_FUNDO = "#F8F3EC"
-COR_CARTAO = "#FFFFFF"
-COR_DESTAQUE = "#FFF8F0"
-COR_SUCESSO = "#059669"
-COR_AVISO = "#D97706"
+COR_PRINCIPAL = "#C77D5B"          # Terracota
+COR_PRINCIPAL_HOVER = "#B26B4B"    # Terracota hover
+COR_PRINCIPAL_SUAVE = "#F3E5DE"    # Terracota claro (fundo de card/ícone)
 
-BORDA = "1px solid #EDE5DC"
-SOMBRA_SUAVE = "0 2px 8px rgba(45, 31, 24, 0.04)"
+COR_OLIVA = "#A3A66B"              # Verde oliva
+COR_OLIVA_SUAVE = "#E7EAD6"        # Verde oliva claro (fundo de card/badge)
+COR_OLIVA_TEXTO = "#5A5E36"        # Verde oliva escuro (texto de badge)
+
+COR_AREIA = "#EFE6DA"              # Areia
+COR_CARAMELO = "#D6B99A"           # Caramelo
+
+COR_TITULO = "#2C2523"             # Grafite quente
+COR_TEXTO = "#4F4643"              # Texto padrão
+COR_TEXTO_CLARO = "#756A66"        # Subtítulos e descrições
+COR_FUNDO = "#F8F3EC"              # Bege claro (fundo da página)
+COR_CARTAO = "#FFFFFF"             # Branco (cards de conteúdo)
+COR_DESTAQUE = "#F7EFEA"           # Destaque sutil terracota
+
+COR_SUCESSO = "#6D7A3E"            # Oliva de confirmação
+COR_AVISO = "#C77D5B"              # Terracota de destaque
+
+BORDA = "1px solid #E5DDD3"
+SOMBRA_SUAVE = "0 2px 8px rgba(44, 37, 35, 0.04)"
 
 
 # ============================================================
@@ -40,7 +50,7 @@ def titulo_secao(titulo: str, descricao: str = ""):
         rx.text(
             descricao,
             color=COR_TEXTO_CLARO,
-            font_size="16px",
+            font_size="15px",
         ),
         align="start",
         spacing="1",
@@ -58,7 +68,7 @@ def campo_formulario(
         rx.text(
             rotulo,
             color=COR_TEXTO,
-            font_size="16px",
+            font_size="15px",
             font_weight="600",
         ),
         rx.input(
@@ -68,6 +78,7 @@ def campo_formulario(
             width="100%",
             size="3",
             border_radius="9px",
+            background=COR_CARTAO,
         ),
         align="start",
         spacing="1",
@@ -75,67 +86,75 @@ def campo_formulario(
     )
 
 
-def cartao_metrica(titulo: str, valor, icone: str):
+def indicador_compacto(
+    titulo: str,
+    valor,
+    icone: str,
+    fundo: str = COR_PRINCIPAL_SUAVE,
+    borda_cor: str = "#E6CFC3",
+    cor_icone: str = COR_PRINCIPAL,
+    cor_valor: str = COR_TITULO,
+):
     return rx.box(
-        rx.vstack(
-            rx.hstack(
+        rx.hstack(
+            rx.center(
+                rx.icon(
+                    icone,
+                    color=cor_icone,
+                    size=17,
+                ),
+                background=COR_CARTAO,
+                border=f"1px solid {borda_cor}",
+                width="34px",
+                height="34px",
+                border_radius="9px",
+                flex_shrink="0",
+            ),
+            rx.vstack(
                 rx.text(
                     titulo,
                     color=COR_TEXTO_CLARO,
-                    font_size="16px",
-                    font_weight="500",
+                    font_size="12px",
+                    font_weight="600",
+                    line_height="1.1",
                 ),
-                rx.spacer(),
-                rx.icon(
-                    icone,
-                    color=COR_PRINCIPAL,
-                    size=19,
+                rx.text(
+                    valor,
+                    color=cor_valor,
+                    font_size="19px",
+                    font_weight="700",
+                    line_height="1.2",
                 ),
-                width="100%",
-                align="center",
+                align="start",
+                spacing="0",
             ),
-            rx.heading(
-                valor,
-                size="6",
-                color=COR_TITULO,
-            ),
-            align="start",
-            spacing="2",
+            align="center",
+            spacing="3",
             width="100%",
         ),
-        background=COR_CARTAO,
-        border=BORDA,
-        border_radius="12px",
-        padding="16px",
-        box_shadow=SOMBRA_SUAVE,
+        background=fundo,
+        border=f"1px solid {borda_cor}",
+        border_radius="11px",
+        padding="10px 14px",
         width="100%",
     )
 
 
 def botao_aba(texto: str, identificador: str):
+    ativo = VoluntariosState.aba_ativa == identificador
     return rx.button(
         texto,
         on_click=lambda: VoluntariosState.selecionar_aba(identificador),
-        background=rx.cond(
-            VoluntariosState.aba_ativa == identificador,
-            COR_PRINCIPAL,
-            COR_CARTAO,
-        ),
-        color=rx.cond(
-            VoluntariosState.aba_ativa == identificador,
-            "#FFFFFF",
-            COR_TEXTO,
-        ),
-        border=rx.cond(
-            VoluntariosState.aba_ativa == identificador,
-            f"1px solid {COR_PRINCIPAL}",
-            BORDA,
-        ),
-        border_radius="9px",
+        background=rx.cond(ativo, COR_PRINCIPAL, COR_CARTAO),
+        color=rx.cond(ativo, "#FFFFFF", COR_TEXTO),
+        border=rx.cond(ativo, f"1px solid {COR_PRINCIPAL}", BORDA),
+        border_radius="10px",
+        font_weight="600",
         size="3",
+        cursor="pointer",
         _hover={
-            "background": COR_PRINCIPAL_HOVER,
-            "color": "#FFFFFF",
+            "background": rx.cond(ativo, COR_PRINCIPAL_HOVER, COR_AREIA),
+            "color": rx.cond(ativo, "#FFFFFF", COR_TITULO),
         },
     )
 
@@ -146,9 +165,40 @@ def cartao_padrao(conteudo):
         background=COR_CARTAO,
         border=BORDA,
         border_radius="14px",
-        padding="18px",
+        padding="20px",
         width="100%",
         box_shadow=SOMBRA_SUAVE,
+    )
+
+
+def badge_terracota(texto):
+    return rx.box(
+        rx.text(
+            texto,
+            color=COR_PRINCIPAL,
+            font_size="13px",
+            font_weight="600",
+        ),
+        background=COR_PRINCIPAL_SUAVE,
+        padding_x="10px",
+        padding_y="3px",
+        border_radius="8px",
+    )
+
+
+def badge_status_voluntario(status):
+    ativo = status == "Ativo"
+    return rx.box(
+        rx.text(
+            status,
+            color=rx.cond(ativo, COR_OLIVA_TEXTO, COR_TEXTO_CLARO),
+            font_size="12px",
+            font_weight="600",
+        ),
+        background=rx.cond(ativo, COR_OLIVA_SUAVE, COR_AREIA),
+        padding_x="10px",
+        padding_y="3px",
+        border_radius="8px",
     )
 
 
@@ -160,7 +210,13 @@ def formulario_voluntario():
     return cartao_padrao(
         rx.vstack(
             rx.hstack(
-                rx.icon("user-plus", color=COR_PRINCIPAL, size=20),
+                rx.center(
+                    rx.icon("user-plus", color=COR_PRINCIPAL, size=18),
+                    background=COR_PRINCIPAL_SUAVE,
+                    width="34px",
+                    height="34px",
+                    border_radius="9px",
+                ),
                 rx.heading(
                     "Cadastrar voluntário",
                     size="4",
@@ -195,7 +251,7 @@ def formulario_voluntario():
                 rx.text(
                     "Status",
                     color=COR_TEXTO,
-                    font_size="16px",
+                    font_size="15px",
                     font_weight="600",
                 ),
                 rx.select(
@@ -203,6 +259,7 @@ def formulario_voluntario():
                     value=VoluntariosState.status_voluntario,
                     on_change=VoluntariosState.set_status_voluntario,
                     width="100%",
+                    size="3",
                 ),
                 align="start",
                 spacing="1",
@@ -210,19 +267,29 @@ def formulario_voluntario():
             ),
 
             rx.button(
-                rx.icon("plus", size=16),
+                rx.icon("plus", size=17),
                 "Cadastrar voluntário",
                 on_click=VoluntariosState.cadastrar_voluntario,
                 background=COR_PRINCIPAL,
                 color="#FFFFFF",
+                font_weight="600",
+                size="3",
+                border_radius="10px",
+                height="36px",
                 width="100%",
+                cursor="pointer",
                 _hover={"background": COR_PRINCIPAL_HOVER},
             ),
 
-            rx.text(
-                VoluntariosState.mensagem,
-                color=COR_SUCESSO,
-                font_size="16px",
+            rx.cond(
+                VoluntariosState.mensagem != "",
+                rx.text(
+                    VoluntariosState.mensagem,
+                    color=COR_SUCESSO,
+                    font_size="14px",
+                    font_weight="500",
+                ),
+                rx.box(),
             ),
 
             align="start",
@@ -242,16 +309,18 @@ def cartao_voluntario(voluntario: dict):
                         color=COR_PRINCIPAL,
                         size=19,
                     ),
-                    background=COR_DESTAQUE,
-                    width="38px",
-                    height="38px",
+                    background=COR_PRINCIPAL_SUAVE,
+                    border="1px solid #E6CFC3",
+                    width="40px",
+                    height="40px",
                     border_radius="10px",
                 ),
                 rx.vstack(
                     rx.text(
                         voluntario["nome"],
                         color=COR_TITULO,
-                        font_weight="600",
+                        font_weight="700",
+                        font_size="16px",
                     ),
                     rx.text(
                         voluntario["email"],
@@ -263,26 +332,23 @@ def cartao_voluntario(voluntario: dict):
                     flex="1",
                     min_width="0",
                 ),
-                rx.badge(
-                    voluntario["status"],
-                    color_scheme=rx.cond(
-                        voluntario["status"] == "Ativo",
-                        "green",
-                        "gray",
-                    ),
-                    variant="soft",
-                ),
+                badge_status_voluntario(voluntario["status"]),
                 width="100%",
                 align="center",
-                spacing="2",
+                spacing="3",
             ),
 
-            rx.divider(color="#EEE5DC"),
+            rx.divider(color="#EDE5DC"),
 
-            rx.text(
-                "Telefone: " + voluntario["telefone"],
-                color=COR_TEXTO,
-                font_size="16px",
+            rx.hstack(
+                rx.icon("phone", size=15, color=COR_TEXTO_CLARO),
+                rx.text(
+                    voluntario["telefone"],
+                    color=COR_TEXTO,
+                    font_size="15px",
+                ),
+                align="center",
+                spacing="2",
             ),
 
             align="start",
@@ -291,8 +357,9 @@ def cartao_voluntario(voluntario: dict):
         ),
         background=COR_CARTAO,
         border=BORDA,
-        border_radius="11px",
-        padding="12px",
+        border_radius="12px",
+        padding="14px",
+        box_shadow=SOMBRA_SUAVE,
         width="100%",
     )
 
@@ -315,11 +382,7 @@ def aba_voluntarios():
                         color=COR_TITULO,
                     ),
                     rx.spacer(),
-                    rx.badge(
-                        VoluntariosState.quantidade_voluntarios,
-                        color_scheme="brown",
-                        variant="soft",
-                    ),
+                    badge_terracota(VoluntariosState.quantidade_voluntarios),
                     width="100%",
                     align="center",
                 ),
@@ -343,7 +406,7 @@ def aba_voluntarios():
                     rx.text(
                         "Nenhum voluntário encontrado.",
                         color=COR_TEXTO_CLARO,
-                        font_size="16px",
+                        font_size="15px",
                     ),
                     rx.box(),
                 ),
@@ -351,7 +414,8 @@ def aba_voluntarios():
                 background=COR_CARTAO,
                 border=BORDA,
                 border_radius="14px",
-                padding="18px",
+                padding="20px",
+                box_shadow=SOMBRA_SUAVE,
                 width="100%",
                 align="start",
                 spacing="3",
@@ -377,7 +441,13 @@ def formulario_atividade():
     return cartao_padrao(
         rx.vstack(
             rx.hstack(
-                rx.icon("calendar-plus", color=COR_PRINCIPAL, size=20),
+                rx.center(
+                    rx.icon("calendar-plus", color=COR_PRINCIPAL, size=18),
+                    background=COR_PRINCIPAL_SUAVE,
+                    width="34px",
+                    height="34px",
+                    border_radius="9px",
+                ),
                 rx.heading(
                     "Cadastrar atividade",
                     size="4",
@@ -405,7 +475,7 @@ def formulario_atividade():
                 rx.text(
                     "Descrição",
                     color=COR_TEXTO,
-                    font_size="16px",
+                    font_size="15px",
                     font_weight="600",
                 ),
                 rx.text_area(
@@ -414,6 +484,7 @@ def formulario_atividade():
                     placeholder="Descreva a atividade...",
                     width="100%",
                     min_height="100px",
+                    border_radius="9px",
                 ),
                 align="start",
                 spacing="1",
@@ -421,19 +492,29 @@ def formulario_atividade():
             ),
 
             rx.button(
-                rx.icon("plus", size=16),
+                rx.icon("plus", size=17),
                 "Cadastrar atividade",
                 on_click=VoluntariosState.cadastrar_atividade,
                 background=COR_PRINCIPAL,
                 color="#FFFFFF",
+                font_weight="600",
+                size="3",
+                border_radius="10px",
+                height="44px",
                 width="100%",
+                cursor="pointer",
                 _hover={"background": COR_PRINCIPAL_HOVER},
             ),
 
-            rx.text(
-                VoluntariosState.mensagem,
-                color=COR_SUCESSO,
-                font_size="16px",
+            rx.cond(
+                VoluntariosState.mensagem != "",
+                rx.text(
+                    VoluntariosState.mensagem,
+                    color=COR_SUCESSO,
+                    font_size="14px",
+                    font_weight="500",
+                ),
+                rx.box(),
             ),
 
             align="start",
@@ -450,19 +531,21 @@ def cartao_atividade(atividade: dict):
                 rx.center(
                     rx.icon(
                         "calendar-days",
-                        color=COR_PRINCIPAL,
+                        color=COR_OLIVA_TEXTO,
                         size=19,
                     ),
-                    background=COR_DESTAQUE,
-                    width="38px",
-                    height="38px",
+                    background=COR_OLIVA_SUAVE,
+                    border="1px solid #D3D8BA",
+                    width="40px",
+                    height="40px",
                     border_radius="10px",
                 ),
                 rx.vstack(
                     rx.text(
                         atividade["tipo_atividade"],
                         color=COR_TITULO,
-                        font_weight="600",
+                        font_weight="700",
+                        font_size="16px",
                     ),
                     rx.text(
                         atividade["data_atividade"],
@@ -476,10 +559,10 @@ def cartao_atividade(atividade: dict):
                 ),
                 width="100%",
                 align="center",
-                spacing="2",
+                spacing="3",
             ),
 
-            rx.divider(color="#EEE5DC"),
+            rx.divider(color="#EDE5DC"),
 
             rx.text(
                 rx.cond(
@@ -488,7 +571,7 @@ def cartao_atividade(atividade: dict):
                     "Sem descrição informada.",
                 ),
                 color=COR_TEXTO,
-                font_size="16px",
+                font_size="15px",
             ),
 
             align="start",
@@ -497,8 +580,9 @@ def cartao_atividade(atividade: dict):
         ),
         background=COR_CARTAO,
         border=BORDA,
-        border_radius="11px",
-        padding="12px",
+        border_radius="12px",
+        padding="14px",
+        box_shadow=SOMBRA_SUAVE,
         width="100%",
     )
 
@@ -521,11 +605,7 @@ def aba_atividades():
                         color=COR_TITULO,
                     ),
                     rx.spacer(),
-                    rx.badge(
-                        VoluntariosState.quantidade_atividades,
-                        color_scheme="brown",
-                        variant="soft",
-                    ),
+                    badge_terracota(VoluntariosState.quantidade_atividades),
                     width="100%",
                     align="center",
                 ),
@@ -549,7 +629,7 @@ def aba_atividades():
                     rx.text(
                         "Nenhuma atividade encontrada.",
                         color=COR_TEXTO_CLARO,
-                        font_size="16px",
+                        font_size="15px",
                     ),
                     rx.box(),
                 ),
@@ -557,7 +637,8 @@ def aba_atividades():
                 background=COR_CARTAO,
                 border=BORDA,
                 border_radius="14px",
-                padding="18px",
+                padding="20px",
+                box_shadow=SOMBRA_SUAVE,
                 width="100%",
                 align="start",
                 spacing="3",
@@ -580,83 +661,98 @@ def aba_atividades():
 # ============================================================
 
 def opcao_voluntario(voluntario: dict):
+    selecionado = VoluntariosState.voluntario_selecionado_id == voluntario["id"]
     return rx.button(
         rx.hstack(
             rx.text(
                 voluntario["nome"],
-                font_size="16px",
+                font_size="15px",
+                font_weight=rx.cond(selecionado, "600", "500"),
+                text_align="left",
             ),
             rx.spacer(),
             rx.cond(
-                VoluntariosState.voluntario_selecionado_id == voluntario["id"],
-                rx.icon("check-check", color=COR_SUCESSO, size=17),
-                rx.icon("circle", color=COR_TEXTO_CLARO, size=17),
+                selecionado,
+                rx.icon("circle-check", color=COR_PRINCIPAL, size=18),
+                rx.icon("circle", color=COR_TEXTO_CLARO, size=18),
             ),
             width="100%",
             align="center",
+            spacing="3",
         ),
         on_click=lambda: VoluntariosState.set_voluntario_selecionado_id(
             voluntario["id"]
         ),
-        background=rx.cond(
-            VoluntariosState.voluntario_selecionado_id == voluntario["id"],
-            COR_DESTAQUE,
-            COR_CARTAO,
-        ),
-        color=COR_TEXTO,
-        border=rx.cond(
-            VoluntariosState.voluntario_selecionado_id == voluntario["id"],
-            f"1px solid {COR_PRINCIPAL}",
-            BORDA,
-        ),
+        background=rx.cond(selecionado, COR_PRINCIPAL_SUAVE, COR_CARTAO),
+        color=COR_TITULO,
+        border=rx.cond(selecionado, f"1.5px solid {COR_PRINCIPAL}", BORDA),
+        border_radius="10px",
+        height="auto",
+        padding_y="11px",
+        padding_x="14px",
         width="100%",
         justify="start",
-        size="2",
+        cursor="pointer",
+        _hover={
+            "background": rx.cond(selecionado, COR_PRINCIPAL_SUAVE, COR_DESTAQUE),
+            "border_color": COR_PRINCIPAL,
+        },
     )
 
 
 def opcao_atividade(atividade: dict):
+    selecionada = VoluntariosState.atividade_selecionada_id == atividade["id"]
     return rx.button(
         rx.hstack(
             rx.vstack(
                 rx.text(
                     atividade["tipo_atividade"],
-                    font_size="16px",
+                    font_size="15px",
+                    font_weight=rx.cond(selecionada, "600", "500"),
+                    color=COR_TITULO,
+                    text_align="left",
+                    line_height="1.3",
                 ),
-                rx.text(
-                    atividade["data_atividade"],
-                    font_size="14px",
-                    color=COR_TEXTO_CLARO,
+                rx.hstack(
+                    rx.icon("calendar", size=13, color=COR_TEXTO_CLARO),
+                    rx.text(
+                        atividade["data_atividade"],
+                        font_size="13px",
+                        color=COR_TEXTO_CLARO,
+                    ),
+                    spacing="1",
+                    align="center",
                 ),
                 align="start",
-                spacing="0",
+                spacing="1",
             ),
             rx.spacer(),
             rx.cond(
-                VoluntariosState.atividade_selecionada_id == atividade["id"],
-                rx.icon("check-check", color=COR_SUCESSO, size=17),
-                rx.icon("circle", color=COR_TEXTO_CLARO, size=17),
+                selecionada,
+                rx.icon("circle-check", color=COR_PRINCIPAL, size=18),
+                rx.icon("circle", color=COR_TEXTO_CLARO, size=18),
             ),
             width="100%",
             align="center",
+            spacing="3",
         ),
         on_click=lambda: VoluntariosState.set_atividade_selecionada_id(
             atividade["id"]
         ),
-        background=rx.cond(
-            VoluntariosState.atividade_selecionada_id == atividade["id"],
-            COR_DESTAQUE,
-            COR_CARTAO,
-        ),
-        color=COR_TEXTO,
-        border=rx.cond(
-            VoluntariosState.atividade_selecionada_id == atividade["id"],
-            f"1px solid {COR_PRINCIPAL}",
-            BORDA,
-        ),
+        background=rx.cond(selecionada, COR_PRINCIPAL_SUAVE, COR_CARTAO),
+        color=COR_TITULO,
+        border=rx.cond(selecionada, f"1.5px solid {COR_PRINCIPAL}", BORDA),
+        border_radius="10px",
+        height="auto",
+        padding_y="11px",
+        padding_x="14px",
         width="100%",
         justify="start",
-        size="2",
+        cursor="pointer",
+        _hover={
+            "background": rx.cond(selecionada, COR_PRINCIPAL_SUAVE, COR_DESTAQUE),
+            "border_color": COR_PRINCIPAL,
+        },
     )
 
 
@@ -664,7 +760,13 @@ def formulario_participacao():
     return cartao_padrao(
         rx.vstack(
             rx.hstack(
-                rx.icon("user-round-plus", color=COR_PRINCIPAL, size=20),
+                rx.center(
+                    rx.icon("user-round-plus", color=COR_PRINCIPAL, size=18),
+                    background=COR_PRINCIPAL_SUAVE,
+                    width="34px",
+                    height="34px",
+                    border_radius="9px",
+                ),
                 rx.heading(
                     "Registrar participação",
                     size="4",
@@ -674,42 +776,52 @@ def formulario_participacao():
                 spacing="2",
             ),
 
-            rx.text(
-                "Selecione o voluntário",
-                color=COR_TEXTO,
-                font_size="16px",
-                font_weight="600",
+            rx.vstack(
+                rx.text(
+                    "Selecione o voluntário",
+                    color=COR_TEXTO,
+                    font_size="15px",
+                    font_weight="600",
+                ),
+                rx.vstack(
+                    rx.foreach(
+                        VoluntariosState.voluntarios,
+                        opcao_voluntario,
+                    ),
+                    width="100%",
+                    max_height="200px",
+                    overflow_y="auto",
+                    padding_right="6px",
+                    spacing="2",
+                ),
+                align="start",
+                spacing="2",
+                width="100%",
             ),
+
+            rx.divider(color="#EDE5DC"),
 
             rx.vstack(
-                rx.foreach(
-                    VoluntariosState.voluntarios,
-                    opcao_voluntario,
+                rx.text(
+                    "Selecione a atividade",
+                    color=COR_TEXTO,
+                    font_size="15px",
+                    font_weight="600",
                 ),
-                width="100%",
-                max_height="150px",
-                overflow_y="auto",
-                spacing="2",
-            ),
-
-            rx.divider(color="#EEE5DC"),
-
-            rx.text(
-                "Selecione a atividade",
-                color=COR_TEXTO,
-                font_size="16px",
-                font_weight="600",
-            ),
-
-            rx.vstack(
-                rx.foreach(
-                    VoluntariosState.atividades,
-                    opcao_atividade,
+                rx.vstack(
+                    rx.foreach(
+                        VoluntariosState.atividades,
+                        opcao_atividade,
+                    ),
+                    width="100%",
+                    max_height="230px",
+                    overflow_y="auto",
+                    padding_right="6px",
+                    spacing="2",
                 ),
-                width="100%",
-                max_height="150px",
-                overflow_y="auto",
+                align="start",
                 spacing="2",
+                width="100%",
             ),
 
             campo_formulario(
@@ -720,23 +832,33 @@ def formulario_participacao():
             ),
 
             rx.button(
-                rx.icon("plus", size=16),
+                rx.icon("plus", size=17),
                 "Registrar participação",
                 on_click=VoluntariosState.associar_voluntario_atividade,
                 background=COR_PRINCIPAL,
                 color="#FFFFFF",
+                font_weight="600",
+                size="3",
+                border_radius="10px",
+                height="44px",
                 width="100%",
+                cursor="pointer",
                 _hover={"background": COR_PRINCIPAL_HOVER},
             ),
 
-            rx.text(
-                VoluntariosState.mensagem,
-                color=COR_SUCESSO,
-                font_size="16px",
+            rx.cond(
+                VoluntariosState.mensagem != "",
+                rx.text(
+                    VoluntariosState.mensagem,
+                    color=COR_SUCESSO,
+                    font_size="14px",
+                    font_weight="500",
+                ),
+                rx.box(),
             ),
 
             align="start",
-            spacing="3",
+            spacing="4",
             width="100%",
         )
     )
@@ -750,22 +872,19 @@ def item_participacao(participacao: dict):
                     rx.text(
                         participacao["nome_voluntario"],
                         color=COR_TITULO,
-                        font_weight="600",
+                        font_weight="700",
+                        font_size="16px",
                     ),
                     rx.text(
                         participacao["tipo_atividade"],
                         color=COR_TEXTO,
-                        font_size="16px",
+                        font_size="15px",
                     ),
                     align="start",
                     spacing="0",
                 ),
                 rx.spacer(),
-                rx.badge(
-                    participacao["data_atividade"],
-                    color_scheme="brown",
-                    variant="soft",
-                ),
+                badge_terracota(participacao["data_atividade"]),
                 width="100%",
                 align="center",
             ),
@@ -775,7 +894,7 @@ def item_participacao(participacao: dict):
                 rx.text(
                     "Função: " + participacao["funcao_na_atividade"],
                     color=COR_TEXTO_CLARO,
-                    font_size="16px",
+                    font_size="14px",
                 ),
                 rx.box(),
             ),
@@ -786,8 +905,9 @@ def item_participacao(participacao: dict):
         ),
         background=COR_CARTAO,
         border=BORDA,
-        border_radius="10px",
-        padding="12px",
+        border_radius="12px",
+        padding="14px",
+        box_shadow=SOMBRA_SUAVE,
         width="100%",
     )
 
@@ -810,11 +930,7 @@ def aba_participacoes():
                         color=COR_TITULO,
                     ),
                     rx.spacer(),
-                    rx.badge(
-                        VoluntariosState.quantidade_participacoes,
-                        color_scheme="brown",
-                        variant="soft",
-                    ),
+                    badge_terracota(VoluntariosState.quantidade_participacoes),
                     width="100%",
                     align="center",
                 ),
@@ -838,7 +954,7 @@ def aba_participacoes():
                     rx.text(
                         "Nenhuma participação encontrada.",
                         color=COR_TEXTO_CLARO,
-                        font_size="16px",
+                        font_size="15px",
                     ),
                     rx.box(),
                 ),
@@ -846,13 +962,14 @@ def aba_participacoes():
                 background=COR_CARTAO,
                 border=BORDA,
                 border_radius="14px",
-                padding="18px",
+                padding="20px",
+                box_shadow=SOMBRA_SUAVE,
                 width="100%",
                 align="start",
                 spacing="3",
             ),
 
-            columns={"initial": "1", "md": "2"},
+            columns={"initial": "1", "lg": "2"},
             spacing="4",
             width="100%",
             align="start",
@@ -896,29 +1013,39 @@ def voluntarios_page():
                             "Organize os voluntários, as atividades da ONG "
                             "e os registros de participação.",
                             color=COR_TEXTO_CLARO,
-                            font_size="18px",
+                            font_size="16px",
                         ),
                         align="start",
                         spacing="1",
                         width="100%",
                     ),
 
-                    # INDICADORES
+                    # INDICADORES COMPACTOS EM LINHA
                     rx.grid(
-                        cartao_metrica(
-                            "Voluntários cadastrados",
-                            VoluntariosState.quantidade_voluntarios,
-                            "users",
+                        indicador_compacto(
+                            titulo="Voluntários cadastrados",
+                            valor=VoluntariosState.quantidade_voluntarios,
+                            icone="users",
+                            fundo=COR_PRINCIPAL_SUAVE,
+                            borda_cor="#E6CFC3",
+                            cor_icone=COR_PRINCIPAL,
                         ),
-                        cartao_metrica(
-                            "Atividades cadastradas",
-                            VoluntariosState.quantidade_atividades,
-                            "calendar-days",
+                        indicador_compacto(
+                            titulo="Atividades cadastradas",
+                            valor=VoluntariosState.quantidade_atividades,
+                            icone="calendar-days",
+                            fundo=COR_OLIVA_SUAVE,
+                            borda_cor="#D3D8BA",
+                            cor_icone=COR_OLIVA_TEXTO,
+                            cor_valor=COR_OLIVA_TEXTO,
                         ),
-                        cartao_metrica(
-                            "Participações registradas",
-                            VoluntariosState.quantidade_participacoes,
-                            "handshake",
+                        indicador_compacto(
+                            titulo="Participações registradas",
+                            valor=VoluntariosState.quantidade_participacoes,
+                            icone="handshake",
+                            fundo=COR_AREIA,
+                            borda_cor="#DFD3C3",
+                            cor_icone=COR_PRINCIPAL,
                         ),
                         columns={
                             "initial": "1",
@@ -951,14 +1078,15 @@ def voluntarios_page():
                     ),
 
                     align="start",
-                    spacing="5",
+                    spacing="4",
                     width="100%",
                 ),
-                padding="28px",
+                padding="24px 28px",
                 width="100%",
                 min_height="100vh",
                 background=COR_FUNDO,
                 flex="1",
+                min_width="0",
             ),
 
             width="100%",

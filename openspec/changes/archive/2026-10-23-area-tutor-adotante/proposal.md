@@ -1,38 +1,36 @@
 # Proposal: Área do Tutor/Adotante
 
-
 ## Why
 
-O sistema Porto Seguro Pet precisa oferecer um painel inicial centralizado, enxuto e objetivo para os tutores e adotantes na rota `/tutor`. 
+O sistema Porto Seguro Pet precisa oferecer um painel inicial centralizado, acolhedor, legível e objetivo para os tutores e adotantes na rota `/tutor`. 
 
-A experiência foi desenhada para priorizar o que é mais crítico para o tutor: acompanhar com transparência a evolução das suas solicitações de adoção e manter seus dados de contato e residência sempre atualizados para a equipe da ONG.
+A experiência foi refatorada para eliminar a fragmentação entre várias subpáginas e priorizar o que é mais crítico para o tutor em uma única jornada fluida: acompanhar com transparência a evolução das suas solicitações de adoção, consultar relatórios de pós-adoção e orientações de guarda responsável, e manter seus dados de contato e residência sempre atualizados para a equipe da ONG.
 
-Anteriormente, o tutor via apenas códigos numéricos e informações isoladas sobre suas solicitações. Era necessário tornar a consulta de adoções visualmente clara e explicativa, destacar a identificação real do animal resgatado, permitir que o tutor gerencie seus próprios dados cadastrais e oferecer acesso aos serviços de acompanhamento pós-adoção e orientações.
+Anteriormente, o tutor navegava entre rotas dispersas (`/tutor`, `/meus-dados`, `/acompanhamento`, `/orientacoes`) com layout em duas colunas e fontes reduzidas. Era necessário consolidar toda a experiência em uma navegação moderna por abas, garantir o carregamento automático dos dados ao entrar no painel, aplicar uma paleta visual mais suave e legível e preservar integralmente a integração com o backend Xano.
 
 ## What Changes
 
-- Manter o painel do Tutor/Adotante registrado e acessível na rota `/tutor` com redirecionamento automático após o login conforme o perfil.
-- Organizar a interface em duas colunas: bloco de dados e cartões de serviços à esquerda, e o feed visual de solicitações de adoção à direita.
-- Disponibilizar os 3 cartões/blocos de navegação para subpáginas específicas: "Meus dados" (`/meus-dados`), "Acompanhamento" (`/acompanhamento`) e "Orientações" (`/orientacoes`).
-- Exibir o nome real do animal em cada processo de adoção, utilizando os dados injetados via Add-on no endpoint do Xano.
-- Apresentar a evolução da solicitação de adoção através de uma barra de progresso visual em 3 passos (1. Análise, 2. Aprovação, 3. Conclusão) com explicações sobre cada etapa.
-- Permitir a consulta e edição dos dados pessoais do tutor na página `/meus-dados` com salvamento direto no backend Xano via requisição `PATCH`.
-- Disponibilizar a visualização dos relatórios de visitas de acompanhamento pós-adoção e o guia informativo de guarda responsável.
+- Consolidar a Área do Tutor na rota `/tutor` com redirecionamento automático após o login JWT e carregamento automático dos dados via `LoginState.iniciar_painel_tutor` no evento `on_load`.
+- Substituir o antigo layout fragmentado por uma interface centralizada baseada em **3 abas limpas** (*Minhas Adoções*, *Pós-Adoção e Guias*, e *Meu Perfil*), mantendo as rotas anteriores (`/acompanhamento`, `/meus-dados`, `/orientacoes`) como atalhos compatíveis que abrem diretamente a aba correspondente.
+- Aplicar a nova identidade visual acolhedora da Área do Tutor baseada em **Terracota aberto (`#D9967B`)**, **Sálvia (`#7B9076`)** e **Soft White (`#FAF8F5`)** sobre o fundo temático de patinhas (`#FFF7ED`), com escala tipográfica ampliada para maior conforto de leitura.
+- Exibir o nome real e os detalhes do animal em cada processo de adoção (via dados injetados por Add-on no endpoint do Xano), acompanhados de uma barra de progresso visual em 3 passos (**1. Análise**, **2. Aprovação**, **3. Conclusão**) com explicação clara de cada etapa.
+- Unificar na aba **Pós-Adoção e Guias** o histórico de visitas/acompanhamentos pós-adoção e os guias de guarda responsável construídos com cartões nativos do Reflex (`card_guia_tutor`), removendo dependências de componentes externos.
+- Permitir a consulta e edição dos dados pessoais e de endereço do tutor diretamente na aba **Meu Perfil**, com salvamento autenticado no backend Xano via requisição `PATCH` e feedback visual via *toast*.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `area-tutor-adotante`: define a estrutura visual, os cartões de navegação e a exibição clara das solicitações de adoção e perfil na área do tutor.
+- `area-tutor-adotante`: define a estrutura unificada em 3 abas (*Minhas Adoções*, *Pós-Adoção e Guias*, *Meu Perfil*), a identidade visual Terracota aberto/Sálvia/Soft White, a tipografia ampliada e o carregamento automático inicial na rota `/tutor`.
 
 ### Modified Capabilities
 
-- `processo-adocao-consulta`: atualizada para incluir a identificação visual do animal e o indicador de progresso por etapas.
-- `tutor-perfil-atualizacao`: permite ao tutor atualizar suas informações de contato e endereço no sistema.
+- `processo-adocao-consulta`: atualizada para exibir a identificação real do animal, o indicador visual de progresso em 3 etapas e carregamento automático sem necessidade de ação manual.
+- `tutor-perfil-atualizacao`: integrada diretamente na aba **Meu Perfil** do painel `/tutor` para consulta e atualização cadastral via `PATCH`.
 
 ## Impact
 
-- **Frontend Reflex (`ProjetoONG.py`):** implementação da página principal `/tutor` e das subpáginas `/meus-dados`, `/acompanhamento` e `/orientacoes`, incluindo componentes de stepper e formulário com feedback via toast.
-- **Backend Xano:** uso do Add-on no endpoint de listagem de `PROCESSO_ADOCAO` para retornar os dados do `ANIMAL` e uso do endpoint `PATCH /tutor_adotante` para atualização cadastral.
+- **Frontend Reflex (`ProjetoONG.py`):** refatoração completa da interface do tutor (`area_tutor`, `aba_minhas_adocoes_tutor`, `aba_pos_adocao_e_guias_tutor`, `aba_meu_perfil_tutor` e `card_guia_tutor`), adição de `iniciar_painel_tutor` e redirecionamento compatível das rotas secundárias.
+- **Backend Xano:** preservação integral dos endpoints existentes (`PROCESSO_ADOCAO` com Add-on de `ANIMAL`, `ACOMPANHAMENTO_POS_ADOCAO` e `PATCH /tutor_adotante`), sem exigir alterações no banco de dados.
 - **Autenticação:** preservação da validação do token JWT e direcionamento de rotas baseado no perfil do usuário (`TUTOR/ADOTANTE`).
-- **Documentação OpenSpec:** sincronização da proposta para refletir as funcionalidades concluídas e os comportamentos reais da API.
+- **Evoluções Futuras Mapeadas:** agendamento de consultas veterinárias e registro de doações diretamente pelo tutor, aproveitando as tabelas já estruturadas no Xano.

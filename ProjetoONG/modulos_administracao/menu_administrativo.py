@@ -4,13 +4,13 @@ import reflex as rx
 # ============================================================
 # SISTEMA DE DESIGN: TOKENS VISUAIS
 # ============================================================
-COR_PRINCIPAL = "#58392B"
-COR_TITULO = "#2D1F18"
-COR_TEXTO = "#52433D"
-COR_TEXTO_CLARO = "#78675E"
-COR_FUNDO_SIDEBAR = "#EFE6DA"
-COR_CARTAO = "#FFFFFF"
-COR_DESTAQUE = "#FFF8F0"
+COR_PRINCIPAL = "#A96348"
+COR_TITULO = "#FFFFFF"
+COR_TEXTO = "#FFFFFF"
+COR_TEXTO_CLARO = "#F8EDE5"
+COR_FUNDO_SIDEBAR = "#C77D5B"
+COR_CARTAO = "#A96348"
+COR_DESTAQUE = "#B96F50"
 
 SOMBRA_LEVE = "0 1px 3px rgba(0, 0, 0, 0.03)"
 
@@ -31,7 +31,7 @@ def item_sidebar(icone: str, rotulo: str, rota: str = "#"):
             rx.icon(
                 icone,
                 size=20,
-                color=rx.cond(ativo, COR_PRINCIPAL, COR_TEXTO_CLARO),
+                color=rx.cond(ativo, "#FFFFFF", COR_TEXTO_CLARO),
                 flex_shrink="0",
             ),
             rx.text(
@@ -68,7 +68,7 @@ def sidebar_administracao():
         rx.hstack(
             rx.center(
                 rx.icon("paw-print", size=20, color="#FFFFFF"),
-                background=COR_PRINCIPAL,
+                background="#A3A982",
                 width="38px",
                 height="38px",
                 border_radius="10px",
@@ -80,11 +80,7 @@ def sidebar_administracao():
                     font_weight="bold",
                     font_size="18px",
                 ),
-                rx.text(
-                    "Painel administrativo",
-                    font_size="13px",
-                    color=COR_TEXTO_CLARO,
-                ),
+            
                 spacing="0",
                 align="start",
             ),

@@ -1,4 +1,3 @@
-
 import reflex as rx
 
 from ProjetoONG.state.lares_temporarios_state import (
@@ -11,23 +10,26 @@ from ProjetoONG.modulos_administracao.menu_administrativo import (
 
 
 # ============================================================
-# PALETA VISUAL
+# PALETA VISUAL (SEM MARROM #58392B / TERRACOTA ABERTO #C77D5B)
 # ============================================================
 
-COR_PRINCIPAL = "#58392B"
-COR_PRINCIPAL_HOVER = "#422A1F"
-COR_TITULO = "#2D1F18"
-COR_TEXTO = "#52433D"
-COR_TEXTO_CLARO = "#66534A"
+COR_PRINCIPAL = "#C77D5B"
+COR_PRINCIPAL_HOVER = "#B56A48"
+COR_TITULO = "#241E1B"
+COR_TEXTO = "#4A413B"
+COR_TEXTO_CLARO = "#61564E"
 COR_FUNDO = "#F8F3EC"
-COR_CARTAO = "#FFFFFF"
-COR_DESTAQUE = "#FFF8F0"
-COR_SUCESSO = "#059669"
-COR_AVISO = "#D97706"
-COR_ERRO = "#DC2626"
+COR_AREIA = "#EFE6DA"
+COR_CARAMELO = "#D6B99A"
+COR_VERDE_OLIVA = "#A3A66B"
+COR_CARTAO = "#FFFDF9"
+COR_DESTAQUE = "#F5E7DF"
+COR_SUCESSO = "#5F6B35"
+COR_AVISO = "#B87A3D"
+COR_ERRO = "#B84A39"
 
-SOMBRA_SUAVE = "0 2px 8px rgba(45, 31, 24, 0.04)"
-BORDA = "1px solid #EDE5DC"
+SOMBRA_SUAVE = "0 2px 8px rgba(36, 30, 27, 0.04)"
+BORDA_SUTIL = "1px solid #E6DACB"
 
 
 # ============================================================
@@ -62,24 +64,29 @@ def cartao_metrica(
     valor,
     descricao: str,
     icone: str,
+    bg_cartao: str = COR_AREIA,
+    borda_cartao: str = COR_CARAMELO,
+    cor_icone: str = COR_PRINCIPAL,
+    bg_icone: str = COR_CARTAO,
 ):
     return rx.box(
         rx.vstack(
             rx.hstack(
                 rx.text(
                     titulo,
-                    color=COR_TEXTO_CLARO,
+                    color=COR_TEXTO,
                     font_size="16px",
-                    font_weight="500",
+                    font_weight="600",
                 ),
                 rx.spacer(),
                 rx.center(
                     rx.icon(
                         icone,
-                        color=COR_PRINCIPAL,
+                        color=cor_icone,
                         size=19,
                     ),
-                    background=COR_DESTAQUE,
+                    background=bg_icone,
+                    border=f"1px solid {borda_cartao}",
                     width="38px",
                     height="38px",
                     border_radius="10px",
@@ -102,8 +109,8 @@ def cartao_metrica(
             spacing="2",
             width="100%",
         ),
-        background=COR_CARTAO,
-        border=BORDA,
+        background=bg_cartao,
+        border=f"1px solid {borda_cartao}",
         border_radius="14px",
         padding="18px",
         box_shadow=SOMBRA_SUAVE,
@@ -114,7 +121,6 @@ def cartao_metrica(
 # ============================================================
 # CARTÃO DE LAR TEMPORÁRIO
 # ============================================================
-
 
 def cartao_lar(lar: dict):
     return rx.box(
@@ -128,6 +134,7 @@ def cartao_lar(lar: dict):
                         size=18,
                     ),
                     background=COR_DESTAQUE,
+                    border="1px solid #E3C2B2",
                     width="38px",
                     height="38px",
                     border_radius="10px",
@@ -154,12 +161,12 @@ def cartao_lar(lar: dict):
                     lar["situacao"] == "Lotado",
                     rx.badge(
                         "Lotado",
-                        color_scheme="orange",
+                        color_scheme="amber",
                         variant="soft",
                     ),
                     rx.badge(
                         "Com vagas",
-                        color_scheme="green",
+                        color_scheme="grass",
                         variant="soft",
                     ),
                 ),
@@ -168,7 +175,7 @@ def cartao_lar(lar: dict):
                 spacing="2",
             ),
 
-            rx.divider(color="#EEE5DC"),
+            rx.divider(color="#EAE0D5"),
 
             # Indicadores em uma linha
             rx.grid(
@@ -237,16 +244,20 @@ def cartao_lar(lar: dict):
 
             # Acesso à ficha
             rx.button(
-                rx.icon("eye", size=14),
+                rx.icon("eye", size=15),
                 "Visualizar ficha",
                 size="2",
+                font_weight="600",
                 width="100%",
-                background=COR_DESTAQUE,
-                color=COR_PRINCIPAL,
-                border="1px solid #E8D9CA",
-                border_radius="8px",
+                background=COR_PRINCIPAL,
+                color=COR_CARTAO,
+                border="1px solid #B36947",
+                border_radius="9px",
+                box_shadow="0 1px 3px rgba(199, 125, 91, 0.25)",
+                cursor="pointer",
                 _hover={
-                    "background": "#F2E6D9",
+                    "background": COR_PRINCIPAL_HOVER,
+                    "border_color": "#9E5838",
                 },
                 on_click=lambda: LaresTemporariosState.selecionar_lar(
                     lar["id"]
@@ -258,14 +269,228 @@ def cartao_lar(lar: dict):
             width="100%",
         ),
         background=COR_CARTAO,
-        border=BORDA,
+        border=BORDA_SUTIL,
         border_radius="12px",
-        padding="12px",
+        padding="14px",
         box_shadow=SOMBRA_SUAVE,
         width="100%",
         height="100%",
     )
 
+
+# ============================================================
+# JANELA MODAL DE CADASTRO DE NOVO LAR
+# ============================================================
+
+def modal_cadastro_lar():
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.icon("plus", size=16),
+                "Cadastrar Lar",
+                font_weight="600",
+                size="3",
+                background=COR_PRINCIPAL,
+                color=COR_CARTAO,
+                border="1px solid #B36947",
+                border_radius="10px",
+                box_shadow="0 1px 3px rgba(199, 125, 91, 0.25)",
+                cursor="pointer",
+                _hover={"background": COR_PRINCIPAL_HOVER},
+                on_click=lambda: LaresTemporariosState.set_mostrar_form_cadastro(True),
+            ),
+        ),
+        rx.dialog.content(
+            rx.vstack(
+                rx.hstack(
+                    rx.vstack(
+                        rx.dialog.title(
+                            "Cadastrar novo lar parceiro",
+                            color=COR_TITULO,
+                            font_size="20px",
+                            font_weight="700",
+                            margin="0",
+                        ),
+                        rx.dialog.description(
+                            "Preencha os dados do responsável e a capacidade de acolhimento.",
+                            color=COR_TEXTO_CLARO,
+                            font_size="14px",
+                        ),
+                        align="start",
+                        spacing="1",
+                    ),
+                    rx.spacer(),
+                    rx.dialog.close(
+                        rx.button(
+                            rx.icon("x", size=16),
+                            variant="ghost",
+                            color=COR_TEXTO_CLARO,
+                            cursor="pointer",
+                            on_click=lambda: LaresTemporariosState.set_mostrar_form_cadastro(False),
+                        ),
+                    ),
+                    width="100%",
+                    align="start",
+                ),
+
+                rx.divider(color="#EAE0D5"),
+
+                rx.grid(
+                    rx.vstack(
+                        rx.text(
+                            "Nome do responsável *",
+                            font_weight="600",
+                            color=COR_TEXTO,
+                            font_size="14px",
+                        ),
+                        rx.input(
+                            placeholder="Ex: Ana Paula Ferreira",
+                            value=LaresTemporariosState.novo_nome_responsavel,
+                            on_change=LaresTemporariosState.set_novo_nome_responsavel,
+                            width="100%",
+                            background=COR_CARTAO,
+                            border=BORDA_SUTIL,
+                        ),
+                        align="start",
+                        spacing="1",
+                        width="100%",
+                    ),
+                    rx.vstack(
+                        rx.text(
+                            "Telefone *",
+                            font_weight="600",
+                            color=COR_TEXTO,
+                            font_size="14px",
+                        ),
+                        rx.input(
+                            placeholder="(11) 99999-9999",
+                            value=LaresTemporariosState.novo_telefone,
+                            on_change=LaresTemporariosState.set_novo_telefone,
+                            width="100%",
+                            background=COR_CARTAO,
+                            border=BORDA_SUTIL,
+                        ),
+                        align="start",
+                        spacing="1",
+                        width="100%",
+                    ),
+                    rx.vstack(
+                        rx.text(
+                            "Endereço completo *",
+                            font_weight="600",
+                            color=COR_TEXTO,
+                            font_size="14px",
+                        ),
+                        rx.input(
+                            placeholder="Rua, número, bairro - Cidade/UF",
+                            value=LaresTemporariosState.novo_endereco,
+                            on_change=LaresTemporariosState.set_novo_endereco,
+                            width="100%",
+                            background=COR_CARTAO,
+                            border=BORDA_SUTIL,
+                        ),
+                        align="start",
+                        spacing="1",
+                        width="100%",
+                    ),
+                    rx.vstack(
+                        rx.text(
+                            "Capacidade de animais *",
+                            font_weight="600",
+                            color=COR_TEXTO,
+                            font_size="14px",
+                        ),
+                        rx.input(
+                            type="number",
+                            min="1",
+                            value=LaresTemporariosState.nova_capacidade,
+                            on_change=LaresTemporariosState.set_nova_capacidade,
+                            width="100%",
+                            background=COR_CARTAO,
+                            border=BORDA_SUTIL,
+                        ),
+                        align="start",
+                        spacing="1",
+                        width="100%",
+                    ),
+                    columns={"initial": "1", "sm": "2"},
+                    spacing="3",
+                    width="100%",
+                ),
+
+                rx.vstack(
+                    rx.text(
+                        "Observações do lar",
+                        font_weight="600",
+                        color=COR_TEXTO,
+                        font_size="14px",
+                    ),
+                    rx.text_area(
+                        placeholder="Ex: Casa com quintal telado, aceita cães de pequeno porte...",
+                        value=LaresTemporariosState.novas_observacoes,
+                        on_change=LaresTemporariosState.set_novas_observacoes,
+                        width="100%",
+                        background=COR_CARTAO,
+                        border=BORDA_SUTIL,
+                    ),
+                    align="start",
+                    spacing="1",
+                    width="100%",
+                ),
+
+                rx.cond(
+                    LaresTemporariosState.mensagem_cadastro != "",
+                    rx.text(
+                        LaresTemporariosState.mensagem_cadastro,
+                        color=COR_ERRO,
+                        font_size="14px",
+                        font_weight="600",
+                    ),
+                    rx.box(),
+                ),
+
+                rx.hstack(
+                    rx.spacer(),
+                    rx.dialog.close(
+                        rx.button(
+                            "Cancelar",
+                            variant="outline",
+                            color=COR_TEXTO,
+                            border=BORDA_SUTIL,
+                            border_radius="9px",
+                            cursor="pointer",
+                            on_click=lambda: LaresTemporariosState.set_mostrar_form_cadastro(False),
+                        ),
+                    ),
+                    rx.button(
+                        rx.icon("check", size=16),
+                        "Salvar lar parceiro",
+                        font_weight="600",
+                        background=COR_PRINCIPAL,
+                        color=COR_CARTAO,
+                        border="1px solid #B36947",
+                        border_radius="9px",
+                        cursor="pointer",
+                        _hover={"background": COR_PRINCIPAL_HOVER},
+                        on_click=LaresTemporariosState.cadastrar_lar,
+                    ),
+                    spacing="2",
+                    width="100%",
+                ),
+
+                align="start",
+                spacing="3",
+                width="100%",
+            ),
+            max_width="560px",
+            background=COR_CARTAO,
+            border=BORDA_SUTIL,
+            border_radius="16px",
+            padding="24px",
+        ),
+        open=LaresTemporariosState.mostrar_form_cadastro,
+        on_open_change=LaresTemporariosState.set_mostrar_form_cadastro,
+    )
 
 
 # ============================================================
@@ -284,6 +509,7 @@ def area_filtros():
                 size="3",
                 border_radius="10px",
                 background=COR_CARTAO,
+                border=BORDA_SUTIL,
             ),
             rx.select(
                 LaresTemporariosState.opcoes_filtro,
@@ -313,7 +539,7 @@ def grade_lares():
                 LaresTemporariosState.lares_filtrados,
                 cartao_lar,
             ),
-           columns={
+            columns={
                 "initial": "1",
                 "sm": "2",
                 "md": "2",
@@ -345,6 +571,7 @@ def grade_lares():
             ),
             padding="40px",
             background=COR_CARTAO,
+            border=BORDA_SUTIL,
             border_radius="14px",
             width="100%",
         ),
@@ -356,6 +583,7 @@ def grade_lares():
 # ============================================================
 
 def item_animal_disponivel(animal: dict):
+    selecionado = LaresTemporariosState.animal_selecionado_id == animal["id"]
     return rx.hstack(
         rx.vstack(
             rx.text(
@@ -373,10 +601,17 @@ def item_animal_disponivel(animal: dict):
         ),
         rx.spacer(),
         rx.button(
-            "Selecionar",
+            rx.cond(selecionado, "Selecionado", "Selecionar"),
             size="2",
-            color_scheme="brown",
-            variant="soft",
+            font_weight="600",
+            background=rx.cond(selecionado, COR_PRINCIPAL, COR_DESTAQUE),
+            color=rx.cond(selecionado, COR_CARTAO, COR_PRINCIPAL),
+            border="1px solid #DFB9A6",
+            border_radius="8px",
+            _hover={
+                "background": rx.cond(selecionado, COR_PRINCIPAL_HOVER, "#EDD7CC"),
+                "border_color": COR_PRINCIPAL,
+            },
             on_click=lambda: (
                 LaresTemporariosState.set_animal_selecionado(
                     animal["id"]
@@ -385,7 +620,8 @@ def item_animal_disponivel(animal: dict):
         ),
         width="100%",
         padding="10px 12px",
-        border=BORDA,
+        background=rx.cond(selecionado, COR_DESTAQUE, COR_CARTAO),
+        border=rx.cond(selecionado, f"1px solid {COR_PRINCIPAL}", BORDA_SUTIL),
         border_radius="9px",
         align="center",
     )
@@ -403,18 +639,30 @@ def area_alocacao():
             rx.vstack(
                 rx.text(
                     "Animal selecionado: ",
-                    rx.cond(
-                        LaresTemporariosState.animal_selecionado_id != "",
-                        LaresTemporariosState.animal_selecionado_id,
-                        "Nenhum",
+                    rx.text.span(
+                        LaresTemporariosState.nome_animal_selecionado,
+                        font_weight="600",
+                        color=COR_TITULO,
                     ),
                     color=COR_TEXTO,
                     font_size="16px",
                 ),
 
-                rx.foreach(
-                    LaresTemporariosState.animais_disponiveis,
-                    item_animal_disponivel,
+                rx.cond(
+                    LaresTemporariosState.animais_disponiveis.length() > 0,
+                    rx.vstack(
+                        rx.foreach(
+                            LaresTemporariosState.animais_disponiveis,
+                            item_animal_disponivel,
+                        ),
+                        width="100%",
+                        spacing="2",
+                    ),
+                    rx.text(
+                        "Nenhum animal com status 'Disponível' encontrado no momento.",
+                        color=COR_AVISO,
+                        font_size="15px",
+                    ),
                 ),
 
                 rx.text(
@@ -424,10 +672,12 @@ def area_alocacao():
                     font_size="16px",
                 ),
                 rx.input(
+                    type="date",
                     value=LaresTemporariosState.data_inicio,
                     on_change=LaresTemporariosState.set_data_inicio,
-                    placeholder="DD/MM/AAAA",
                     width="100%",
+                    background=COR_CARTAO,
+                    border=BORDA_SUTIL,
                 ),
 
                 rx.text(
@@ -443,24 +693,36 @@ def area_alocacao():
                     ),
                     placeholder="Observações sobre a permanência...",
                     width="100%",
+                    background=COR_CARTAO,
+                    border=BORDA_SUTIL,
                 ),
 
                 rx.button(
                     rx.icon("plus", size=16),
                     "Confirmar alocação",
+                    font_weight="600",
                     width="100%",
                     background=COR_PRINCIPAL,
-                    color="#FFFFFF",
+                    color=COR_CARTAO,
+                    border="1px solid #B36947",
+                    border_radius="9px",
+                    box_shadow="0 1px 3px rgba(199, 125, 91, 0.25)",
                     _hover={
                         "background": COR_PRINCIPAL_HOVER,
+                        "border_color": "#9E5838",
                     },
                     on_click=LaresTemporariosState.alocar_animal,
                 ),
 
-                rx.text(
-                    LaresTemporariosState.mensagem,
-                    color=COR_SUCESSO,
-                    font_size="16px",
+                rx.cond(
+                    LaresTemporariosState.mensagem != "",
+                    rx.text(
+                        LaresTemporariosState.mensagem,
+                        color=COR_SUCESSO,
+                        font_size="16px",
+                        font_weight="600",
+                    ),
+                    rx.box(),
                 ),
 
                 align="start",
@@ -469,7 +731,7 @@ def area_alocacao():
             ),
         ),
         background=COR_CARTAO,
-        border=BORDA,
+        border=BORDA_SUTIL,
         border_radius="14px",
         padding="18px",
         width="100%",
@@ -514,7 +776,7 @@ def item_historico(permanencia: dict):
                     permanencia["situacao"],
                     color_scheme=rx.cond(
                         permanencia["situacao"] == "Em andamento",
-                        "green",
+                        "grass",
                         "gray",
                     ),
                     variant="soft",
@@ -541,17 +803,26 @@ def item_historico(permanencia: dict):
                         font_size="16px",
                     ),
                     rx.input(
+                        type="date",
                         value=LaresTemporariosState.data_saida,
                         on_change=LaresTemporariosState.set_data_saida,
-                        placeholder="DD/MM/AAAA",
                         width="100%",
+                        background=COR_CARTAO,
+                        border=BORDA_SUTIL,
                     ),
                     rx.button(
                         rx.icon("log-out", size=16),
                         "Registrar saída",
                         size="2",
-                        color_scheme="orange",
-                        variant="soft",
+                        font_weight="600",
+                        background="#ECEEDB",
+                        color=COR_SUCESSO,
+                        border="1px solid #C5C99A",
+                        border_radius="8px",
+                        _hover={
+                            "background": "#E0E4C7",
+                            "border_color": COR_VERDE_OLIVA,
+                        },
                         width="100%",
                         on_click=lambda: (
                             LaresTemporariosState.registrar_saida(
@@ -571,8 +842,9 @@ def item_historico(permanencia: dict):
             spacing="2",
             width="100%",
         ),
+        background=COR_CARTAO,
         padding="12px",
-        border=BORDA,
+        border=BORDA_SUTIL,
         border_radius="10px",
         width="100%",
     )
@@ -636,8 +908,15 @@ def ficha_lar():
                     rx.button(
                         rx.icon("x", size=16),
                         "Fechar",
-                        variant="ghost",
+                        size="2",
+                        variant="outline",
                         color=COR_TEXTO,
+                        border=BORDA_SUTIL,
+                        border_radius="8px",
+                        _hover={
+                            "background": COR_AREIA,
+                            "border_color": COR_CARAMELO,
+                        },
                         on_click=lambda: (
                             LaresTemporariosState.selecionar_lar("")
                         ),
@@ -646,7 +925,7 @@ def ficha_lar():
                     align="center",
                 ),
 
-                rx.divider(color="#EEE5DC"),
+                rx.divider(color="#EAE0D5"),
 
                 rx.grid(
                     rx.vstack(
@@ -720,11 +999,11 @@ def ficha_lar():
                     width="100%",
                 ),
 
-                rx.divider(color="#EEE5DC"),
+                rx.divider(color="#EAE0D5"),
 
                 area_alocacao(),
 
-                rx.divider(color="#EEE5DC"),
+                rx.divider(color="#EAE0D5"),
 
                 area_historico(),
 
@@ -733,7 +1012,7 @@ def ficha_lar():
                 width="100%",
             ),
             background=COR_CARTAO,
-            border=BORDA,
+            border=BORDA_SUTIL,
             border_radius="14px",
             padding="20px",
             width="100%",
@@ -789,24 +1068,36 @@ def lares_temporarios_page():
                             LaresTemporariosState.total_lares,
                             "Total de lares registrados",
                             "house",
+                            bg_cartao="#F3E1D8",
+                            borda_cartao="#E3C2B2",
+                            cor_icone=COR_PRINCIPAL,
                         ),
                         cartao_metrica(
                             "Animais acolhidos",
                             LaresTemporariosState.total_animais_acolhidos,
                             "Permanências em andamento",
                             "paw-print",
+                            bg_cartao="#ECEEDB",
+                            borda_cartao="#CFD4AE",
+                            cor_icone=COR_SUCESSO,
                         ),
                         cartao_metrica(
                             "Vagas disponíveis",
                             LaresTemporariosState.total_vagas_disponiveis,
                             "Espaços disponíveis nos lares",
                             "bed-double",
+                            bg_cartao="#F3E9DC",
+                            borda_cartao=COR_CARAMELO,
+                            cor_icone=COR_PRINCIPAL,
                         ),
                         cartao_metrica(
                             "Lares com vagas",
                             LaresTemporariosState.total_lares_com_vagas,
                             "Lares que podem receber animais",
                             "door-open",
+                            bg_cartao="#E4E7CE",
+                            borda_cartao="#C2C89C",
+                            cor_icone=COR_SUCESSO,
                         ),
                         columns={
                             "initial": "1",
@@ -817,15 +1108,18 @@ def lares_temporarios_page():
                         width="100%",
                     ),
 
-                    # TÍTULO E FILTROS
+                    # TÍTULO E BOTÃO DE CADASTRO (ABRE JANELA MODAL)
                     rx.hstack(
                         titulo_secao(
                             "Lares cadastrados",
                             "Visualize a ocupação e a disponibilidade.",
                         ),
                         rx.spacer(),
+                        modal_cadastro_lar(),
                         width="100%",
                         align="center",
+                        wrap="wrap",
+                        spacing="3",
                     ),
 
                     area_filtros(),

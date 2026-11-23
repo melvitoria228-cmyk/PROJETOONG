@@ -1,8 +1,8 @@
 ## Context
 
-O projeto Porto Seguro Pet utiliza Reflex no frontend e Xano no backend. A tabela `ANIMAL` e seus endpoints de consulta, cadastro, edição e exclusão já existem no grupo de API `PortoSeguroPet`.
+O projeto **Porto Seguro Pet** utiliza **Reflex** no frontend e **Xano** no backend. A tabela `ANIMAL` e seus endpoints REST (`GET`, `POST`, `PATCH`, `DELETE`) estão configurados no grupo de API `PortoSeguroPet` no Xano.
 
-A aplicação possui uma estrutura de autenticação e uma área administrativa implementadas em `ProjetoONG.py`. A nova tela deverá aproveitar essa estrutura, mantendo o funcionamento das rotas e dos demais recursos existentes.
+A aplicação possui autenticação baseada em token JWT (`LoginState`) e uma estrutura modular na Área Administrativa, com menu lateral fixo (`sidebar_administracao`) e rotas dedicadas por operação. O módulo de Gestão de Animais opera na rota `/animais` com carregamento automático (`on_load`), integrando os dados do Xano à interface administrativa.
 
 Os requisitos funcionais desta mudança estão definidos em `specs/gestao-animais/spec.md`.
 
@@ -10,125 +10,104 @@ Os requisitos funcionais desta mudança estão definidos em `specs/gestao-animai
 
 **Goals:**
 
-* Integrar a tela de Gestão de Animais aos endpoints existentes do Xano.
-* Reutilizar a estrutura de componentes, estado e navegação já adotada na aplicação Reflex.
-* Manter a identidade visual administrativa definida para o projeto.
-* Tratar resultados e falhas das operações sem apresentar mensagens de sucesso indevidas.
-* Respeitar os campos, os status e os relacionamentos já definidos para os animais.
+- Integrar a tela de Gestão de Animais (`/animais`) aos endpoints REST da tabela `ANIMAL` no Xano utilizando requisições assíncronas autenticadas (`httpx`).
+- Modularizar a interface e o gerenciamento de estado em arquivos dedicados (`gestao_animais.py` e `animais_state.py`), reutilizando o menu lateral unificado (`sidebar_administracao`) de `ProjetoONG.py`.
+- Seguir a identidade visual administrativa definida para o projeto (paleta Terracota, Verde Oliva e Areia).
+- Suportar indicadores resumidos (KPIs), busca textual, filtros combinados, paginação e exibição/ampliação de fotografias via URL (`foto_url`).
+- Tratar resultados e falhas das operações com feedback claro via *toast* sem apresentar mensagens de sucesso indevidas.
+- Respeitar os campos, os status e a integridade referencial dos relacionamentos no banco de dados.
 
 **Non-Goals:**
 
-* Criar uma nova tabela `ANIMAL` ou duplicar os endpoints existentes.
-* Alterar a autenticação ou substituir o mecanismo de login.
-* Implementar módulos de outros processos da ONG nesta mudança.
-* Adicionar bibliotecas ou dependências sem necessidade.
-* Modificar a estrutura do banco de dados sem justificativa e validação prévias.
+- Criar uma nova tabela `ANIMAL` ou duplicar os endpoints existentes no Xano.
+- Implementar upload de arquivos binários pesados de imagem (mantendo o armazenamento leve por URL em `foto_url`).
+- Alterar o mecanismo de autenticação JWT ou introduzir subperfis administrativos nesta entrega.
+- Adicionar dependências externas desnecessárias além dos componentes nativos do Reflex e `httpx`.
 
 ## Decisions
 
-### 1. Reutilizar a arquitetura existente
+### 1. Modularizar a interface e o estado da Gestão de Animais
 
-A tela será implementada no arquivo `ProjetoONG.py`, aproveitando as rotas, os componentes e os padrões de estado já utilizados no projeto.
+A implementação foi organizada de forma modular para facilitar a manutenção e evitar sobrecarga no arquivo principal:
 
-**Alternativa considerada:** criar um módulo separado para a tela. Essa opção pode facilitar a organização futura, mas não será adotada nesta etapa sem necessidade comprovada, para manter a implementação incremental e simples.
+- **`animais_state.py` (`AnimaisState`):** concentra as variáveis de estado da listagem, filtros, paginação, formulários de criação/edição, modal de foto ampliada e os manipuladores assíncronos (`httpx`) de comunicação com o Xano.
+- **`gestao_animais.py` (`pagina_gestao_animais`):** define os cartões de KPIs, barra de busca e filtros, tabela responsiva com miniaturas clicáveis e modais de visualização, cadastro, edição e exclusão.
+- **`ProjetoONG.py`:** registra a rota dedicada `/animais` com disparo automático de carregamento no `on_load` e integra o menu lateral unificado `sidebar_administracao()`.
 
+**Alternativa considerada:** manter toda a implementação diretamente dentro de `ProjetoONG.py`. Embora viável inicialmente, a separação em módulos dedicados tornou o código mais limpo, legível e alinhado aos demais módulos administrativos.
 
-### 2. Utilizar o Xano como fonte dos dados
+### 2. Utilizar o Xano como fonte persistente de dados com autenticação JWT
 
-As operações de consulta, cadastro, edição e exclusão utilizarão os endpoints existentes da tabela `ANIMAL`, no grupo de API `PortoSeguroPet`.
+As operações de consulta (`GET`), cadastro (`POST`), edição (`PATCH`) e exclusão (`DELETE`) comunicam-se diretamente com os endpoints da tabela `ANIMAL` no grupo de API `PortoSeguroPet` no Xano.
 
-A URL-base da API de animais deverá ser configurada por meio da variável de ambiente `XANO_ANIMAL_URL`, definida no arquivo `.env`. Essa configuração deverá seguir o mecanismo já utilizado pelo projeto, sem inserir URLs de configuração ou credenciais diretamente no código-fonte.
+- A URL do endpoint é carregada via variável de ambiente (`XANO_ANIMAL_URL`) definida no arquivo `.env` (protegido pelo `.gitignore`).
+- As requisições enviam o cabeçalho `Authorization: Bearer <token>` recuperado da sessão autenticada (`LoginState.token`).
+- Todas as chamadas são executadas de forma assíncrona com `httpx.AsyncClient`, garantindo fluidez na interface e tratamento explícito de códigos HTTP e exceções de rede.
 
-O arquivo `.env` deverá permanecer protegido pelo `.gitignore`. Um arquivo `.env.example` poderá documentar os nomes das variáveis necessárias, sem incluir valores reais ou informações sensíveis.
+**Alternativa considerada:** manter os registros apenas em memória local no frontend. Descartada pela necessidade de persistência real e compartilhamento de dados entre os módulos de adoção, atendimento veterinário e lares temporários.
 
-Os endpoints atuais não exigem autenticação. Por isso, as operações de escrita deverão ter seu acesso restringido no Xano antes da disponibilização pública do sistema. A integração deverá respeitar as regras de acesso configuradas no backend.
+### 3. Preservar o modelo de dados existente e suportar `foto_url`
 
-**Alternativa considerada:** manter os animais apenas em uma lista local do frontend. Essa opção não será adotada porque os registros precisam permanecer armazenados no backend e disponíveis entre sessões.
+A interface mapeia fielmente os campos de negócio definidos na entidade `ANIMAL` no Xano:
 
-#
-### 3. Preservar o modelo de dados existente
-
-A interface utilizará os campos de negócio já definidos para a entidade `ANIMAL` no Xano:
-
-- `nome`: texto.
-- `especie`: texto.
+- `nome`: texto obrigatório.
+- `especie`: texto (`Cão`, `Gato`, `Outros`).
 - `raca`: texto.
-- `idade_estimada`: número inteiro.
-- `sexo`: texto.
-- `porte`: texto.
+- `idade_estimada`: número inteiro (em meses).
+- `sexo`: texto (`Macho`, `Fêmea`, `Não identificado`).
+- `porte`: texto (`Mini`, `Pequeno`, `Médio`, `Grande`).
 - `condicao_saude`: texto.
-- `status_atual`: texto.
+- `status_atual`: texto (`Disponível`, `Em Lar Temporário`, `Em Processo de Adoção`, `Adotado`, `Falecido`).
 - `data_resgate`: data.
+- `foto_url`: texto opcional contendo o link direto da fotografia do animal, exibida como avatar circular na listagem e expansível em modal.
 
-Os campos de negócio deverão ser preenchidos conforme as regras de obrigatoriedade configuradas no backend. Os campos de identificação e controle, como `id` e `created_at`, serão tratados como dados gerenciados pelo sistema e não deverão ser editados pelo usuário.
+Os campos de identificação e auditoria (`id`, `created_at`) são gerenciados exclusivamente pelo Xano e exibidos apenas para consulta.
 
-Os campos com opções padronizadas utilizarão as seguintes alternativas:
+**Alternativa considerada:** alterar os valores padronizados de status ou criar tabelas auxiliares para imagens. Evitado para preservar total compatibilidade com os registros existentes e demais endpoints do backend.
 
-- `especie`: Cão, Gato e Outros.
-- `sexo`: Macho, Fêmea e Não identificado.
-- `porte`: Mini, Pequeno, Médio e Grande.
-- `status_atual`: Disponível, Em Lar Temporário, Em Processo de Adoção, Adotado e Falecido.
+### 4. Separar os estados de consulta, filtragem e edição
 
-Antes da implementação, os valores já armazenados no Xano deverão ser conferidos. A interface deverá preservar os registros existentes e evitar divergências de escrita ou acentuação entre as opções exibidas e os valores enviados ao backend.
+O `AnimaisState` mantém separadas:
+- a lista principal sincronizada com o backend;
+- as propriedades computadas/filtradas para busca textual, filtros por espécie/porte/status e paginação;
+- os campos temporários dos formulários de cadastro e edição.
 
-**Alternativa considerada:** criar campos adicionais ou modificar os tipos existentes para facilitar a interface. Essa opção será evitada para não introduzir divergências entre o frontend e o backend.
+Após uma operação `POST` ou `PATCH` confirmada pelo Xano, a listagem é recarregada com os dados atualizados do servidor. Em caso de erro, o estado anterior é preservado e uma notificação *toast* de erro é exibida ao administrador.
 
+**Alternativa considerada:** aplicar atualização otimista na tabela antes da resposta do servidor. Descartada para evitar inconsistências visuais caso o backend rejeite a operação.
 
-### 4. Separar os estados de consulta e edição
+### 5. Tratar a exclusão com confirmação e proteção de integridade
 
-A implementação deverá distinguir os dados recebidos do Xano dos valores temporários preenchidos no formulário.
+Antes de enviar qualquer requisição `DELETE` ao Xano, o sistema exige confirmação explícita do administrador por meio de um modal dedicado.
 
-Após uma operação bem-sucedida, a lista deverá ser atualizada com os dados confirmados pelo backend. Em caso de falha, os dados anteriormente confirmados deverão ser preservados, sem apresentar as alterações como salvas.
+- Se o usuário cancelar, nenhuma requisição é disparada.
+- Caso o Xano bloqueie a exclusão devido a vínculos ativos com outras entidades (`PROCESSO_ADOCAO`, `ATENDIMENTO_VETERINARIO` ou `ANIMAL_LAR_TEMPORARIO`) ou ocorra falha de comunicação, o registro permanece na listagem e uma mensagem informativa explica o motivo da recusa.
 
-**Alternativa considerada:** atualizar somente a interface antes de confirmar a operação no Xano. Essa abordagem pode apresentar informações incorretas quando houver falhas e, por isso, não será utilizada como comportamento definitivo.
+**Alternativa considerada:** exclusão direta em um clique na tabela. Descartada pelo alto risco de perda acidental de registros vinculados.
 
+### 6. Seguir a identidade visual unificada da Área Administrativa
 
-### 5. Tratar a exclusão com confirmação
+A tela adota a paleta institucional padronizada em toda a Área Administrativa do Porto Seguro Pet:
 
-A exclusão deverá solicitar confirmação do usuário antes de enviar a operação ao Xano.
+- **Menu Lateral (`sidebar_administracao`):** fundo Areia (`#EFE6DA`) com borda `#E2D7C7` e item ativo destacado em branco (`#FFFFFF`).
+- **Área de Conteúdo:** fundo Bege Claro (`#F8F3EC`) para conforto visual.
+- **Terracota Institucional:** `#A96348` / `#A65F43` (hover `#8F503B` / `#C77D5B`) e suave `#F5E7DF` para botões principais, ícones e destaques.
+- **Verde Oliva:** `#737747` (hover `#A3A66B`) e suave `#E5E6CF` para indicadores positivos e status disponíveis.
+- **Caramelo / Areia:** `#8C6239` / `#D6B99A` para bordas, detalhes e avatares neutros quando o pet não possui `foto_url`.
+- **Tipografia:** Café Escuro (`#2D1F18`) para títulos; Marrom Médio (`#52433D`) para textos; Cinza Quente (`#78675E`) para rótulos e metadados.
 
-O registro somente deverá ser removido da lista após a confirmação de sucesso pelo backend. Se o usuário cancelar a exclusão, nenhuma solicitação deverá ser enviada.
-
-Caso o backend impeça a exclusão por causa de relacionamentos, regras de negócio ou falha de comunicação, o registro deverá permanecer na interface e uma mensagem deverá informar que a exclusão não foi concluída.
-
-**Alternativa considerada:** excluir imediatamente ao clicar no botão. Essa opção aumenta o risco de exclusões acidentais e será evitada.
-
-### 6. Manter a identidade visual administrativa
-
-A tela seguirá uma paleta própria para a área administrativa, diferenciando-a visualmente da área do tutor/adotante.
-
-As cores principais serão:
-
-* **Marrom (`#57463B`):** menu lateral, títulos e elementos de maior destaque.
-* **Areia (`#F1E4D2`):** fundo da página e áreas de respiro.
-* **Terracota (`#B66A4B`):** botões principais e ações importantes.
-* **Caramelo claro (`#D7B99A`):** bordas, detalhes e destaques suaves.
-
-Os status dos animais utilizarão cores complementares para facilitar a identificação:
-
-* **Disponível para adoção:** verde suave.
-* **Em lar temporário:** amarelo suave.
-* **Em processo de adoção:** azul suave.
-* **Adotado:** lilás suave.
-* **Falecido:** cinza neutro.
-
-As cores dos status deverão ser acompanhadas de texto legível, para que a situação do animal não seja identificada exclusivamente pela cor.
-
-A interface deverá priorizar a leitura dos registros, a organização das informações e o acesso às ações de consulta e manutenção.
+Os badges de status combinam cores suaves de fundo com texto legível, garantindo acessibilidade e leitura rápida na tabela.
 
 ## Risks / Trade-offs
 
-* **Falha de comunicação com o Xano** → apresentar uma mensagem clara e não indicar que a operação foi concluída.
-* **Divergência entre os campos do formulário e o backend** → conferir os nomes, tipos e valores aceitos pelos endpoints antes da implementação.
-* **Exclusão bloqueada por relacionamentos** → tratar a resposta do backend e preservar o registro.
-* **Alterações involuntárias em recursos existentes** → modificar somente o necessário em `ProjetoONG.py` e testar o login e as rotas já existentes.
-* **Exposição de credenciais ou tokens** → reutilizar a configuração segura existente e evitar registrar dados sensíveis em mensagens de erro.
+- **Falha de comunicação ou timeout com o Xano** → tratada com blocos `try/except` assíncronos no `AnimaisState`, exibindo mensagem clara via *toast* sem alterar o estado validado.
+- **Links externos inválidos em `foto_url`** → fallback automático para avatar neutro estilizado com ícone de pata (`paw-print`), evitando ícones de imagem quebrada na tabela.
+- **Exclusão bloqueada por relacionamentos ativos** → interceptação do código de erro HTTP retornado pelo Xano e exibição de orientação clara ao usuário.
+- **Exposição de configurações sensíveis** → URLs de API isoladas em `.env` e uso restrito do token JWT em memória de sessão.
 
 ## Migration Plan
 
-1. Confirmar a configuração dos endpoints e os campos existentes no Xano.
-2. Implementar a tela e as operações na aplicação Reflex.
-3. Testar consulta, cadastro, visualização, edição e exclusão, incluindo cenários de falha.
-4. Verificar se o login e as demais rotas continuam funcionando.
-5. Se a implementação apresentar problemas, reverter as alterações específicas desta mudança em `ProjetoONG.py`, preservando a configuração existente do Xano.
-
+1. Configurar a variável `XANO_ANIMAL_URL` no `.env` e validar os endpoints CRUD da tabela `ANIMAL` no Xano.
+2. Implementar `animais_state.py` e `gestao_animais.py` seguindo a paleta institucional e o layout com `sidebar_administracao`.
+3. Registrar a rota `/animais` em `ProjetoONG.py` com `on_load` vinculado ao carregamento inicial do `AnimaisState`.
+4. Validar em ambiente local os fluxos de listagem, KPIs, filtros, paginação, visualização com ampliação de foto, cadastro, edição, exclusão e tratamento de erros.

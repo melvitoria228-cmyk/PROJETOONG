@@ -1,4 +1,3 @@
-
 import reflex as rx
 
 from ProjetoONG.state.doacoes_state import DoacoesState
@@ -8,22 +7,34 @@ from ProjetoONG.modulos_administracao.menu_administrativo import (
 
 
 # ============================================================
-# PALETA VISUAL
+# PALETA VISUAL OFICIAL (PORTO SEGURO PET)
 # ============================================================
 
-COR_PRINCIPAL = "#58392B"
-COR_PRINCIPAL_HOVER = "#422A1F"
-COR_TITULO = "#2D1F18"
-COR_TEXTO = "#52433D"
-COR_TEXTO_CLARO = "#66534A"
-COR_FUNDO = "#F8F3EC"
-COR_CARTAO = "#FFFFFF"
-COR_DESTAQUE = "#FFF8F0"
-COR_SUCESSO = "#059669"
-COR_AVISO = "#D97706"
+COR_PRINCIPAL = "#C77D5B"          # Terracota
+COR_PRINCIPAL_HOVER = "#B26B4B"    # Terracota hover
+COR_PRINCIPAL_SUAVE = "#F3E5DE"    # Terracota claro (fundo de card/ícone)
 
-BORDA = "1px solid #EDE5DC"
-SOMBRA_SUAVE = "0 2px 8px rgba(45, 31, 24, 0.04)"
+COR_OLIVA = "#A3A66B"              # Verde oliva
+COR_OLIVA_SUAVE = "#E7EAD6"        # Verde oliva claro (fundo de card/badge)
+COR_OLIVA_TEXTO = "#5A5E36"        # Verde oliva escuro (texto de badge)
+
+COR_AREIA = "#EFE6DA"              # Areia
+COR_CARAMELO = "#D6B99A"           # Caramelo
+COR_CARAMELO_SUAVE = "#F5ECE1"     # Caramelo claro (badge material)
+COR_CARAMELO_TEXTO = "#7A5838"     # Caramelo escuro (texto badge material)
+
+COR_TITULO = "#2C2523"             # Grafite quente
+COR_TEXTO = "#4F4643"              # Texto padrão
+COR_TEXTO_CLARO = "#756A66"        # Subtítulos e descrições
+COR_FUNDO = "#F8F3EC"              # Bege claro (fundo da página)
+COR_CARTAO = "#FFFFFF"             # Branco (cards de conteúdo)
+COR_DESTAQUE = "#F7EFEA"           # Destaque sutil terracota
+
+COR_SUCESSO = "#6D7A3E"            # Oliva de confirmação
+COR_AVISO = "#C77D5B"              # Terracota de destaque
+
+BORDA = "1px solid #E5DDD3"
+SOMBRA_SUAVE = "0 2px 8px rgba(44, 37, 35, 0.04)"
 
 
 # ============================================================
@@ -41,7 +52,7 @@ def titulo_secao(titulo: str, descricao: str = ""):
         rx.text(
             descricao,
             color=COR_TEXTO_CLARO,
-            font_size="16px",
+            font_size="15px",
         ),
         align="start",
         spacing="1",
@@ -59,7 +70,7 @@ def campo_formulario(
         rx.text(
             rotulo,
             color=COR_TEXTO,
-            font_size="16px",
+            font_size="15px",
             font_weight="600",
         ),
         rx.input(
@@ -69,6 +80,7 @@ def campo_formulario(
             width="100%",
             size="3",
             border_radius="9px",
+            background=COR_CARTAO,
         ),
         align="start",
         spacing="1",
@@ -76,68 +88,123 @@ def campo_formulario(
     )
 
 
-def cartao_metrica(titulo: str, valor, icone: str):
+def cartao_metrica(
+    titulo: str,
+    valor,
+    subtitulo: str,
+    icone: str,
+    fundo: str = COR_PRINCIPAL_SUAVE,
+    borda_cor: str = "#E6CFC3",
+    cor_icone: str = COR_PRINCIPAL,
+):
     return rx.box(
         rx.vstack(
             rx.hstack(
                 rx.text(
                     titulo,
-                    color=COR_TEXTO_CLARO,
-                    font_size="16px",
-                    font_weight="500",
+                    color=COR_TITULO,
+                    font_size="15px",
+                    font_weight="600",
                 ),
                 rx.spacer(),
-                rx.icon(
-                    icone,
-                    color=COR_PRINCIPAL,
-                    size=19,
+                rx.center(
+                    rx.icon(
+                        icone,
+                        color=cor_icone,
+                        size=18,
+                    ),
+                    background=COR_CARTAO,
+                    border=f"1px solid {borda_cor}",
+                    width="36px",
+                    height="36px",
+                    border_radius="10px",
                 ),
                 width="100%",
                 align="center",
             ),
             rx.heading(
                 valor,
-                size="6",
+                size="7",
                 color=COR_TITULO,
+                font_weight="700",
+            ),
+            rx.text(
+                subtitulo,
+                color=COR_TEXTO_CLARO,
+                font_size="14px",
             ),
             align="start",
             spacing="2",
             width="100%",
         ),
-        background=COR_CARTAO,
-        border=BORDA,
-        border_radius="12px",
-        padding="16px",
+        background=fundo,
+        border=f"1px solid {borda_cor}",
+        border_radius="14px",
+        padding="18px",
         box_shadow=SOMBRA_SUAVE,
         width="100%",
     )
 
 
 def botao_aba(texto: str, identificador: str):
+    ativo = DoacoesState.aba_ativa == identificador
     return rx.button(
         texto,
         on_click=lambda: DoacoesState.selecionar_aba(identificador),
-        background=rx.cond(
-            DoacoesState.aba_ativa == identificador,
-            COR_PRINCIPAL,
-            COR_CARTAO,
-        ),
-        color=rx.cond(
-            DoacoesState.aba_ativa == identificador,
-            "#FFFFFF",
-            COR_TEXTO,
-        ),
-        border=rx.cond(
-            DoacoesState.aba_ativa == identificador,
-            f"1px solid {COR_PRINCIPAL}",
-            BORDA,
-        ),
-        border_radius="9px",
+        background=rx.cond(ativo, COR_PRINCIPAL, COR_CARTAO),
+        color=rx.cond(ativo, "#FFFFFF", COR_TEXTO),
+        border=rx.cond(ativo, f"1px solid {COR_PRINCIPAL}", BORDA),
+        border_radius="10px",
+        font_weight="600",
         size="3",
+        cursor="pointer",
         _hover={
-            "background": COR_PRINCIPAL_HOVER,
-            "color": "#FFFFFF",
+            "background": rx.cond(ativo, COR_PRINCIPAL_HOVER, COR_AREIA),
+            "color": rx.cond(ativo, "#FFFFFF", COR_TITULO),
         },
+    )
+
+
+def cartao_padrao(conteudo):
+    return rx.box(
+        conteudo,
+        background=COR_CARTAO,
+        border=BORDA,
+        border_radius="14px",
+        padding="20px",
+        width="100%",
+        box_shadow=SOMBRA_SUAVE,
+    )
+
+
+def badge_terracota(texto):
+    return rx.box(
+        rx.text(
+            texto,
+            color=COR_PRINCIPAL,
+            font_size="13px",
+            font_weight="600",
+        ),
+        background=COR_PRINCIPAL_SUAVE,
+        padding_x="10px",
+        padding_y="3px",
+        border_radius="8px",
+    )
+
+
+def badge_tipo_doacao(tipo):
+    financeira = tipo == "Financeira"
+    return rx.box(
+        rx.text(
+            tipo,
+            color=rx.cond(financeira, COR_OLIVA_TEXTO, COR_CARAMELO_TEXTO),
+            font_size="12px",
+            font_weight="600",
+        ),
+        background=rx.cond(financeira, COR_OLIVA_SUAVE, COR_CARAMELO_SUAVE),
+        padding_x="10px",
+        padding_y="3px",
+        border_radius="8px",
     )
 
 
@@ -146,10 +213,16 @@ def botao_aba(texto: str, identificador: str):
 # ============================================================
 
 def formulario_doador():
-    return rx.box(
+    return cartao_padrao(
         rx.vstack(
             rx.hstack(
-                rx.icon("user-plus", color=COR_PRINCIPAL, size=20),
+                rx.center(
+                    rx.icon("user-plus", color=COR_PRINCIPAL, size=18),
+                    background=COR_PRINCIPAL_SUAVE,
+                    width="34px",
+                    height="34px",
+                    border_radius="9px",
+                ),
                 rx.heading(
                     "Cadastrar doador",
                     size="4",
@@ -188,31 +261,35 @@ def formulario_doador():
             ),
 
             rx.button(
-                rx.icon("plus", size=16),
+                rx.icon("plus", size=17),
                 "Cadastrar doador",
                 on_click=DoacoesState.cadastrar_doador,
                 background=COR_PRINCIPAL,
                 color="#FFFFFF",
+                font_weight="600",
+                size="3",
+                border_radius="10px",
+                height="36px",
                 width="100%",
+                cursor="pointer",
                 _hover={"background": COR_PRINCIPAL_HOVER},
             ),
 
-            rx.text(
-                DoacoesState.mensagem,
-                color=COR_SUCESSO,
-                font_size="16px",
+            rx.cond(
+                DoacoesState.mensagem != "",
+                rx.text(
+                    DoacoesState.mensagem,
+                    color=COR_SUCESSO,
+                    font_size="14px",
+                    font_weight="500",
+                ),
+                rx.box(),
             ),
 
             align="start",
             spacing="3",
             width="100%",
-        ),
-        background=COR_CARTAO,
-        border=BORDA,
-        border_radius="14px",
-        padding="18px",
-        width="100%",
-        box_shadow=SOMBRA_SUAVE,
+        )
     )
 
 
@@ -226,16 +303,18 @@ def cartao_doador(doador: dict):
                         color=COR_PRINCIPAL,
                         size=19,
                     ),
-                    background=COR_DESTAQUE,
-                    width="38px",
-                    height="38px",
+                    background=COR_PRINCIPAL_SUAVE,
+                    border="1px solid #E6CFC3",
+                    width="40px",
+                    height="40px",
                     border_radius="10px",
                 ),
                 rx.vstack(
                     rx.text(
                         doador["nome"],
                         color=COR_TITULO,
-                        font_weight="600",
+                        font_weight="700",
+                        font_size="16px",
                     ),
                     rx.text(
                         rx.cond(
@@ -253,21 +332,31 @@ def cartao_doador(doador: dict):
                 ),
                 width="100%",
                 align="center",
+                spacing="3",
+            ),
+
+            rx.divider(color="#EDE5DC"),
+
+            rx.hstack(
+                rx.icon("phone", size=15, color=COR_TEXTO_CLARO),
+                rx.text(
+                    doador["telefone"],
+                    color=COR_TEXTO,
+                    font_size="15px",
+                ),
+                align="center",
                 spacing="2",
             ),
 
-            rx.divider(color="#EEE5DC"),
-
-            rx.text(
-                "Telefone: " + doador["telefone"],
-                color=COR_TEXTO,
-                font_size="16px",
-            ),
-
-            rx.text(
-                "E-mail: " + doador["email"],
-                color=COR_TEXTO,
-                font_size="16px",
+            rx.hstack(
+                rx.icon("mail", size=15, color=COR_TEXTO_CLARO),
+                rx.text(
+                    doador["email"],
+                    color=COR_TEXTO,
+                    font_size="15px",
+                ),
+                align="center",
+                spacing="2",
             ),
 
             align="start",
@@ -276,8 +365,9 @@ def cartao_doador(doador: dict):
         ),
         background=COR_CARTAO,
         border=BORDA,
-        border_radius="11px",
-        padding="12px",
+        border_radius="12px",
+        padding="14px",
+        box_shadow=SOMBRA_SUAVE,
         width="100%",
     )
 
@@ -300,11 +390,7 @@ def aba_doadores():
                         color=COR_TITULO,
                     ),
                     rx.spacer(),
-                    rx.badge(
-                        DoacoesState.quantidade_doadores,
-                        color_scheme="brown",
-                        variant="soft",
-                    ),
+                    badge_terracota(DoacoesState.quantidade_doadores),
                     width="100%",
                     align="center",
                 ),
@@ -328,7 +414,7 @@ def aba_doadores():
                     rx.text(
                         "Nenhum doador encontrado.",
                         color=COR_TEXTO_CLARO,
-                        font_size="16px",
+                        font_size="15px",
                     ),
                     rx.box(),
                 ),
@@ -336,7 +422,8 @@ def aba_doadores():
                 background=COR_CARTAO,
                 border=BORDA,
                 border_radius="14px",
-                padding="18px",
+                padding="20px",
+                box_shadow=SOMBRA_SUAVE,
                 width="100%",
                 align="start",
                 spacing="3",
@@ -359,38 +446,42 @@ def aba_doadores():
 # ============================================================
 
 def opcao_doador(doador: dict):
+    selecionado = DoacoesState.doador_selecionado_id == doador["id"]
     return rx.button(
         rx.hstack(
             rx.text(
                 doador["nome"],
-                font_size="16px",
+                font_size="15px",
+                font_weight=rx.cond(selecionado, "600", "500"),
+                text_align="left",
             ),
             rx.spacer(),
             rx.cond(
-                DoacoesState.doador_selecionado_id == doador["id"],
-                rx.icon("check-check", color=COR_SUCESSO, size=17),
-                rx.icon("circle", color=COR_TEXTO_CLARO, size=17),
+                selecionado,
+               rx.icon("circle-check", color=COR_PRINCIPAL, size=18),
+                rx.icon("circle", color=COR_TEXTO_CLARO, size=18),
             ),
             width="100%",
             align="center",
+            spacing="3",
         ),
         on_click=lambda: DoacoesState.set_doador_selecionado(
             doador["id"]
         ),
-        background=rx.cond(
-            DoacoesState.doador_selecionado_id == doador["id"],
-            COR_DESTAQUE,
-            COR_CARTAO,
-        ),
-        color=COR_TEXTO,
-        border=rx.cond(
-            DoacoesState.doador_selecionado_id == doador["id"],
-            f"1px solid {COR_PRINCIPAL}",
-            BORDA,
-        ),
+        background=rx.cond(selecionado, COR_PRINCIPAL_SUAVE, COR_CARTAO),
+        color=COR_TITULO,
+        border=rx.cond(selecionado, f"1.5px solid {COR_PRINCIPAL}", BORDA),
+        border_radius="10px",
+        height="auto",
+        padding_y="11px",
+        padding_x="14px",
         width="100%",
         justify="start",
-        size="2",
+        cursor="pointer",
+        _hover={
+            "background": rx.cond(selecionado, COR_PRINCIPAL_SUAVE, COR_DESTAQUE),
+            "border_color": COR_PRINCIPAL,
+        },
     )
 
 
@@ -399,26 +490,73 @@ def selecao_doador():
         rx.text(
             "Selecione o doador",
             color=COR_TEXTO,
-            font_size="16px",
+            font_size="15px",
             font_weight="600",
         ),
 
-        rx.foreach(
-            DoacoesState.doadores,
-            opcao_doador,
+        rx.vstack(
+            rx.foreach(
+                DoacoesState.doadores,
+                opcao_doador,
+            ),
+            width="100%",
+            max_height="200px",
+            overflow_y="auto",
+            padding_right="6px",
+            spacing="2",
         ),
 
         align="start",
         spacing="2",
         width="100%",
-        max_height="180px",
-        overflow_y="auto",
     )
 
 
 # ============================================================
 # ABA: DOAÇÕES FINANCEIRAS
 # ============================================================
+
+def item_doacao_financeira(doacao: dict):
+    return rx.cond(
+        doacao["tipo_doacao"] == "Financeira",
+        rx.box(
+            rx.vstack(
+                rx.hstack(
+                    rx.text(
+                        doacao["nome_doador"],
+                        color=COR_TITULO,
+                        font_weight="700",
+                        font_size="16px",
+                    ),
+                    rx.spacer(),
+                    badge_tipo_doacao("Financeira"),
+                    width="100%",
+                    align="center",
+                ),
+                rx.heading(
+                    "R$ " + doacao["valor"],
+                    size="5",
+                    color=COR_SUCESSO,
+                ),
+                rx.text(
+                    "Recebida em " + doacao["data_doacao"],
+                    color=COR_TEXTO_CLARO,
+                    font_size="14px",
+                ),
+                align="start",
+                spacing="1",
+                width="100%",
+            ),
+            background=COR_CARTAO,
+            padding="14px",
+            border=BORDA,
+            border_radius="12px",
+            box_shadow=SOMBRA_SUAVE,
+            width="100%",
+        ),
+        rx.box(),
+    )
+
 
 def aba_doacoes_financeiras():
     return rx.vstack(
@@ -428,13 +566,15 @@ def aba_doacoes_financeiras():
         ),
 
         rx.grid(
-            rx.box(
+            cartao_padrao(
                 rx.vstack(
                     rx.hstack(
-                        rx.icon(
-                            "hand-coins",
-                            color=COR_PRINCIPAL,
-                            size=20,
+                        rx.center(
+                            rx.icon("hand-coins", color=COR_PRINCIPAL, size=18),
+                            background=COR_PRINCIPAL_SUAVE,
+                            width="34px",
+                            height="34px",
+                            border_radius="9px",
                         ),
                         rx.heading(
                             "Registrar doação financeira",
@@ -462,30 +602,35 @@ def aba_doacoes_financeiras():
                     ),
 
                     rx.button(
-                        rx.icon("plus", size=16),
+                        rx.icon("plus", size=17),
                         "Registrar doação",
                         on_click=DoacoesState.registrar_doacao_financeira,
                         background=COR_PRINCIPAL,
                         color="#FFFFFF",
+                        font_weight="600",
+                        size="3",
+                        border_radius="10px",
+                        height="36px",
                         width="100%",
+                        cursor="pointer",
                         _hover={"background": COR_PRINCIPAL_HOVER},
                     ),
 
-                    rx.text(
-                        DoacoesState.mensagem,
-                        color=COR_SUCESSO,
-                        font_size="16px",
+                    rx.cond(
+                        DoacoesState.mensagem != "",
+                        rx.text(
+                            DoacoesState.mensagem,
+                            color=COR_SUCESSO,
+                            font_size="14px",
+                            font_weight="500",
+                        ),
+                        rx.box(),
                     ),
 
                     align="start",
                     spacing="3",
                     width="100%",
-                ),
-                background=COR_CARTAO,
-                border=BORDA,
-                border_radius="14px",
-                padding="18px",
-                width="100%",
+                )
             ),
 
             rx.vstack(
@@ -505,7 +650,8 @@ def aba_doacoes_financeiras():
                 background=COR_CARTAO,
                 border=BORDA,
                 border_radius="14px",
-                padding="18px",
+                padding="20px",
+                box_shadow=SOMBRA_SUAVE,
                 width="100%",
             ),
 
@@ -521,30 +667,31 @@ def aba_doacoes_financeiras():
     )
 
 
-def item_doacao_financeira(doacao: dict):
+# ============================================================
+# ABA: DOAÇÕES MATERIAIS
+# ============================================================
+
+def item_doacao_material(doacao: dict):
     return rx.cond(
-        doacao["tipo_doacao"] == "Financeira",
+        doacao["tipo_doacao"] == "Material",
         rx.box(
             rx.vstack(
                 rx.hstack(
                     rx.text(
                         doacao["nome_doador"],
                         color=COR_TITULO,
-                        font_weight="600",
+                        font_weight="700",
+                        font_size="16px",
                     ),
                     rx.spacer(),
-                    rx.badge(
-                        "Financeira",
-                        color_scheme="green",
-                        variant="soft",
-                    ),
+                    badge_tipo_doacao("Material"),
                     width="100%",
                     align="center",
                 ),
-                rx.heading(
-                    "R$ " + doacao["valor"],
-                    size="5",
-                    color=COR_SUCESSO,
+                rx.text(
+                    doacao["descricao"],
+                    color=COR_TEXTO,
+                    font_size="15px",
                 ),
                 rx.text(
                     "Recebida em " + doacao["data_doacao"],
@@ -555,18 +702,16 @@ def item_doacao_financeira(doacao: dict):
                 spacing="1",
                 width="100%",
             ),
-            padding="12px",
+            background=COR_CARTAO,
+            padding="14px",
             border=BORDA,
-            border_radius="10px",
+            border_radius="12px",
+            box_shadow=SOMBRA_SUAVE,
             width="100%",
         ),
         rx.box(),
     )
 
-
-# ============================================================
-# ABA: DOAÇÕES MATERIAIS
-# ============================================================
 
 def aba_doacoes_materiais():
     return rx.vstack(
@@ -576,13 +721,15 @@ def aba_doacoes_materiais():
         ),
 
         rx.grid(
-            rx.box(
+            cartao_padrao(
                 rx.vstack(
                     rx.hstack(
-                        rx.icon(
-                            "package-check",
-                            color=COR_PRINCIPAL,
-                            size=20,
+                        rx.center(
+                            rx.icon("package-check", color=COR_PRINCIPAL, size=18),
+                            background=COR_PRINCIPAL_SUAVE,
+                            width="34px",
+                            height="34px",
+                            border_radius="9px",
                         ),
                         rx.heading(
                             "Registrar doação material",
@@ -599,7 +746,7 @@ def aba_doacoes_materiais():
                         rx.text(
                             "Descrição do material recebido",
                             color=COR_TEXTO,
-                            font_size="16px",
+                            font_size="15px",
                             font_weight="600",
                         ),
                         rx.text_area(
@@ -608,6 +755,7 @@ def aba_doacoes_materiais():
                             placeholder="Descreva os materiais recebidos...",
                             width="100%",
                             min_height="100px",
+                            border_radius="9px",
                         ),
                         align="start",
                         spacing="1",
@@ -622,30 +770,35 @@ def aba_doacoes_materiais():
                     ),
 
                     rx.button(
-                        rx.icon("plus", size=16),
+                        rx.icon("plus", size=17),
                         "Registrar recebimento",
                         on_click=DoacoesState.registrar_doacao_material,
                         background=COR_PRINCIPAL,
                         color="#FFFFFF",
+                        font_weight="600",
+                        size="3",
+                        border_radius="10px",
+                        height="36px",
                         width="100%",
+                        cursor="pointer",
                         _hover={"background": COR_PRINCIPAL_HOVER},
                     ),
 
-                    rx.text(
-                        DoacoesState.mensagem,
-                        color=COR_SUCESSO,
-                        font_size="16px",
+                    rx.cond(
+                        DoacoesState.mensagem != "",
+                        rx.text(
+                            DoacoesState.mensagem,
+                            color=COR_SUCESSO,
+                            font_size="14px",
+                            font_weight="500",
+                        ),
+                        rx.box(),
                     ),
 
                     align="start",
                     spacing="3",
                     width="100%",
-                ),
-                background=COR_CARTAO,
-                border=BORDA,
-                border_radius="14px",
-                padding="18px",
-                width="100%",
+                )
             ),
 
             rx.vstack(
@@ -665,7 +818,8 @@ def aba_doacoes_materiais():
                 background=COR_CARTAO,
                 border=BORDA,
                 border_radius="14px",
-                padding="18px",
+                padding="20px",
+                box_shadow=SOMBRA_SUAVE,
                 width="100%",
             ),
 
@@ -681,49 +835,6 @@ def aba_doacoes_materiais():
     )
 
 
-def item_doacao_material(doacao: dict):
-    return rx.cond(
-        doacao["tipo_doacao"] == "Material",
-        rx.box(
-            rx.vstack(
-                rx.hstack(
-                    rx.text(
-                        doacao["nome_doador"],
-                        color=COR_TITULO,
-                        font_weight="600",
-                    ),
-                    rx.spacer(),
-                    rx.badge(
-                        "Material",
-                        color_scheme="orange",
-                        variant="soft",
-                    ),
-                    width="100%",
-                    align="center",
-                ),
-                rx.text(
-                    doacao["descricao"],
-                    color=COR_TEXTO,
-                    font_size="16px",
-                ),
-                rx.text(
-                    "Recebida em " + doacao["data_doacao"],
-                    color=COR_TEXTO_CLARO,
-                    font_size="14px",
-                ),
-                align="start",
-                spacing="1",
-                width="100%",
-            ),
-            padding="12px",
-            border=BORDA,
-            border_radius="10px",
-            width="100%",
-        ),
-        rx.box(),
-    )
-
-
 # ============================================================
 # ABA: HISTÓRICO
 # ============================================================
@@ -736,7 +847,8 @@ def item_historico(doacao: dict):
                     rx.text(
                         doacao["nome_doador"],
                         color=COR_TITULO,
-                        font_weight="600",
+                        font_weight="700",
+                        font_size="16px",
                     ),
                     rx.text(
                         doacao["data_doacao"],
@@ -747,15 +859,7 @@ def item_historico(doacao: dict):
                     spacing="0",
                 ),
                 rx.spacer(),
-                rx.badge(
-                    doacao["tipo_doacao"],
-                    color_scheme=rx.cond(
-                        doacao["tipo_doacao"] == "Financeira",
-                        "green",
-                        "orange",
-                    ),
-                    variant="soft",
-                ),
+                badge_tipo_doacao(doacao["tipo_doacao"]),
                 width="100%",
                 align="center",
             ),
@@ -770,7 +874,7 @@ def item_historico(doacao: dict):
                 rx.text(
                     doacao["descricao"],
                     color=COR_TEXTO,
-                    font_size="16px",
+                    font_size="15px",
                 ),
             ),
 
@@ -780,8 +884,9 @@ def item_historico(doacao: dict):
         ),
         background=COR_CARTAO,
         border=BORDA,
-        border_radius="10px",
+        border_radius="12px",
         padding="14px",
+        box_shadow=SOMBRA_SUAVE,
         width="100%",
     )
 
@@ -805,33 +910,32 @@ def aba_historico():
 
 
 # ============================================================
-# RESUMO E ÚLTIMAS DOAÇÕES
+# ÚLTIMAS DOAÇÕES
 # ============================================================
 
 def item_ultima_doacao(doacao: dict):
     return rx.hstack(
         rx.text(
             doacao["data_doacao"],
-            color=COR_TEXTO,
-            font_size="16px",
-            width="100px",
+            color=COR_TEXTO_CLARO,
+            font_size="14px",
+            width="105px",
+            flex_shrink="0",
         ),
 
-        rx.badge(
-            doacao["tipo_doacao"],
-            color_scheme=rx.cond(
-                doacao["tipo_doacao"] == "Financeira",
-                "green",
-                "orange",
-            ),
-            variant="soft",
+        rx.box(
+            badge_tipo_doacao(doacao["tipo_doacao"]),
+            width="105px",
+            flex_shrink="0",
         ),
 
         rx.text(
             doacao["nome_doador"],
-            color=COR_TEXTO,
-            font_size="16px",
+            color=COR_TITULO,
+            font_weight="600",
+            font_size="15px",
             flex="1",
+            min_width="0",
         ),
 
         rx.text(
@@ -840,132 +944,83 @@ def item_ultima_doacao(doacao: dict):
                 "R$ " + doacao["valor"],
                 doacao["descricao"],
             ),
-            color=COR_TEXTO,
-            font_size="16px",
+            color=rx.cond(
+                doacao["tipo_doacao"] == "Financeira",
+                COR_SUCESSO,
+                COR_TEXTO,
+            ),
+            font_weight=rx.cond(
+                doacao["tipo_doacao"] == "Financeira",
+                "600",
+                "400",
+            ),
+            font_size="15px",
             flex="1",
+            min_width="0",
+            text_align="right",
         ),
 
         width="100%",
         align="center",
-        spacing="2",
-        padding="10px",
+        spacing="3",
+        padding_y="12px",
+        padding_x="10px",
         border_bottom=BORDA,
     )
 
 
-def secao_resumo_doacoes():
-    return rx.grid(
-        # RESUMO DE DOAÇÕES
-        rx.box(
-            rx.vstack(
-                rx.hstack(
-                    rx.icon(
-                        "chart-no-axes-column-increasing",
-                        color=COR_PRINCIPAL,
-                    ),
-                    rx.heading(
-                        "Resumo de Doações",
-                        size="4",
-                        color=COR_TITULO,
-                    ),
-                    align="center",
-                    spacing="2",
+def secao_ultimas_doacoes():
+    return cartao_padrao(
+        rx.vstack(
+            rx.hstack(
+                rx.center(
+                    rx.icon("clock", color=COR_PRINCIPAL, size=18),
+                    background=COR_PRINCIPAL_SUAVE,
+                    width="34px",
+                    height="34px",
+                    border_radius="9px",
                 ),
 
-                rx.grid(
-                    cartao_metrica(
-                        "Total financeiro recebido",
-                        "R$ " + DoacoesState.total_doacoes_financeiras.to_string(),
-                        "heart",
-                    ),
+                rx.heading(
+                    "Últimas Doações",
+                    size="4",
+                    color=COR_TITULO,
+                ),
 
-                    cartao_metrica(
-                        "Doações registradas",
-                        DoacoesState.quantidade_doacoes,
-                        "handshake",
-                    ),
+                rx.spacer(),
 
-                    cartao_metrica(
-                        "Doadores cadastrados",
-                        DoacoesState.quantidade_doadores,
-                        "users",
-                    ),
-
-                    columns={
-                        "initial": "1",
-                        "sm": "3",
+                rx.button(
+                    "Ver todas",
+                    on_click=lambda: DoacoesState.selecionar_aba("historico"),
+                    background=COR_PRINCIPAL_SUAVE,
+                    color=COR_PRINCIPAL,
+                    font_weight="600",
+                    size="2",
+                    border_radius="8px",
+                    cursor="pointer",
+                    _hover={
+                        "background": COR_PRINCIPAL,
+                        "color": "#FFFFFF",
                     },
-                    spacing="2",
-                    width="100%",
                 ),
 
                 width="100%",
-                align="start",
-                spacing="3",
+                align="center",
             ),
 
-            background=COR_DESTAQUE,
-            border=BORDA,
-            border_radius="14px",
-            padding="16px",
-            width="100%",
-        ),
-
-        # ÚLTIMAS DOAÇÕES
-        rx.box(
             rx.vstack(
-                rx.hstack(
-                    rx.icon(
-                        "clock",
-                        color=COR_PRINCIPAL,
-                    ),
-
-                    rx.heading(
-                        "Últimas Doações",
-                        size="4",
-                        color=COR_TITULO,
-                    ),
-
-                    rx.spacer(),
-
-                    rx.button(
-                        "Ver todas",
-                        on_click=lambda: DoacoesState.selecionar_aba(
-                            "historico"
-                        ),
-                        size="2",
-                        variant="soft",
-                        color_scheme="brown",
-                    ),
-
-                    width="100%",
-                    align="center",
-                ),
-
                 rx.foreach(
                     DoacoesState.doacoes_com_doador,
                     item_ultima_doacao,
                 ),
-
                 width="100%",
-                align="start",
-                spacing="2",
+                spacing="0",
             ),
 
-            background=COR_CARTAO,
-            border=BORDA,
-            border_radius="14px",
-            padding="16px",
             width="100%",
-        ),
-
-        columns={
-            "initial": "1",
-            "lg": "2",
-        },
-        spacing="3",
-        width="100%",
-        align="start",
+            align="start",
+            spacing="3",
+        )
     )
 
 
@@ -1002,11 +1057,49 @@ def doacoes_page():
                             "Gerencie os doadores e organize os registros "
                             "de doações recebidas pela ONG.",
                             color=COR_TEXTO_CLARO,
-                            font_size="18px",
+                            font_size="17px",
                         ),
 
                         align="start",
                         spacing="1",
+                        width="100%",
+                    ),
+
+                    # INDICADORES NO TOPO (PADRÃO LARES TEMPORÁRIOS E VOLUNTÁRIOS)
+                    rx.grid(
+                        cartao_metrica(
+                            titulo="Total financeiro recebido",
+                            valor="R$ " + DoacoesState.total_doacoes_financeiras.to_string(),
+                            subtitulo="Soma das contribuições financeiras",
+                            icone="heart",
+                            fundo=COR_PRINCIPAL_SUAVE,
+                            borda_cor="#E6CFC3",
+                            cor_icone=COR_PRINCIPAL,
+                        ),
+                        cartao_metrica(
+                            titulo="Doações registradas",
+                            valor=DoacoesState.quantidade_doacoes,
+                            subtitulo="Financeiras e materiais recebidas",
+                            icone="handshake",
+                            fundo=COR_OLIVA_SUAVE,
+                            borda_cor="#D3D8BA",
+                            cor_icone=COR_OLIVA_TEXTO,
+                        ),
+                        cartao_metrica(
+                            titulo="Doadores cadastrados",
+                            valor=DoacoesState.quantidade_doadores,
+                            subtitulo="Pessoas e empresas parceiras",
+                            icone="users",
+                            fundo=COR_AREIA,
+                            borda_cor="#DFD3C3",
+                            cor_icone=COR_PRINCIPAL,
+                        ),
+                        columns={
+                            "initial": "1",
+                            "sm": "2",
+                            "lg": "3",
+                        },
+                        spacing="4",
                         width="100%",
                     ),
 
@@ -1038,8 +1131,8 @@ def doacoes_page():
                         ),
                     ),
 
-                    # RESUMO E ÚLTIMAS DOAÇÕES NA PARTE INFERIOR
-                    secao_resumo_doacoes(),
+                    # ÚLTIMAS DOAÇÕES
+                    secao_ultimas_doacoes(),
 
                     align="start",
                     spacing="5",
@@ -1051,6 +1144,7 @@ def doacoes_page():
                 min_height="100vh",
                 background=COR_FUNDO,
                 flex="1",
+                min_width="0",
             ),
 
             width="100%",
