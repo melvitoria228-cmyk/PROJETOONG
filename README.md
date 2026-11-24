@@ -21,15 +21,13 @@ O **Porto Seguro Pet** oferece uma plataforma web única e centralizada que inte
 ## 2. Acesso ao Aplicativo
 
 - **Execução da aplicação:** Execução local via Reflex (`http://localhost:3000`), conforme o passo a passo abaixo.
-- **Repositório GitHub:** `[INSIRA AQUI O LINK DO SEU REPOSITÓRIO PÚBLICO]`
+- **Repositório GitHub:** `[INSIRA AQUI O LINK DO REPOSITÓRIO PÚBLICO]`
 
 ### Como executar localmente
 1. Clone o repositório e acesse a pasta do projeto:
    ```bash
    git clone [INSIRA-AQUI-O-LINK-DO-REPOSITORIO].git
    cd ProjetoONG
-
-3. Copie o arquivo `.env.example` para `.env` na raiz do projeto e preencha as variáveis de ambiente configuradas para a API **Xano** (os demais endpoints já estão mapeados nos estados dos módulos).
 
 
 ## 3. Manual de utilização
@@ -48,37 +46,41 @@ O **Porto Seguro Pet** oferece uma plataforma web única e centralizada que inte
 * **Ações:** Visualize os indicadores gerais da ONG e navegue pelos módulos pelo menu lateral esquerdo.
 * **Resultado esperado:** Acesso rápido e centralizado a todas as áreas de gestão.
 
-![Painel Administrativo](docs/images/02-painel-admin.png)
+![Painel Administrativo](docs/images/02.-painel-admin.png)
 
 #### 2 Gestão de Animais (`/animais`)
 * **Ações:** Clique em **Novo Animal**, preencha os dados básicos e clínicos (espécie, porte, alergias, restrições e status) e salve. Utilize os filtros para buscar ou editar registros.
 * **Resultado esperado:** O animal é cadastrado e exibido na listagem com o status atualizado.
 
-![Gestão de Animais](docs/images/03-animais.png)
+![Gestão de Animais](docs/images/03.gestaoDeAnimais.png)
 
 #### 3 Lares Temporários (`/lares-temporarios`)
 * **Ações:** Cadastre lares parceiros com capacidade de vaga e vincule animais informando a data de entrada (e data de saída ao encerrar o acolhimento).
 * **Resultado esperado:** Controle de ocupação atualizado e histórico completo de acolhimentos preservado.
 
-![Gestão de Lares Temporários](docs/images/04-lares-temporarios.png)
+![Gestão de Lares Temporários](docs/images/04.Lares.png)
 
 #### 4 Atendimento Veterinário (`/atendimento-veterinario`)
 * **Ações:** Clique em **Novo Atendimento**, selecione o animal, data, veterinário e status (`Agendado`, `Realizado` ou `Cancelado`). Quando realizado, preencha peso, diagnóstico, tratamento e custo.
 * **Resultado esperado:** Histórico clínico vinculado ao prontuário do animal.
 
-![Atendimento Veterinário](docs/images/05-atendimento-veterinario.png)
+![Atendimento Veterinário](docs/images/05.veterinario.png)
 
 #### 5. Processos de Adoção (`/adocoes`)
 * **Ações:** Analise os dados do solicitante e atualize o status do processo (`Em análise`, `Aprovada`, `Não aprovada` ou `Adoção efetivada`).
 * **Resultado esperado:** Ao marcar como **`Adoção efetivada`**, o status do animal muda automaticamente para **`Adotado`** e encerra eventual lar temporário ativo.
 
-![Gestão de Adoções](docs/images/06-adocoes.png)
+![Gestão de Adoções](docs/images/06.adocao.png)
 
 #### 6. Pós-Adoção, Doações e Voluntários (`/pos-adocao`, `/doacoes`, `/voluntarios`)
 * **Ações:** Registre relatos de adaptação em **Pós-Adoção**, cadastre doadores e doações financeiras/materiais em **Doações**, e organize voluntários e atividades em **Voluntários**.
 * **Resultado esperado:** Prestação de contas consolidada, histórico de atividades por voluntário e acompanhamento pós-adoção visível para a ONG e para o tutor.
 
-![Acompanhamento Pós-Adoção, Doações e Voluntários](docs/images/07-pos-adocao-doacoes-voluntarios.png)
+![Pós-Adoção](docs/images/07.pos_adocao.png)
+![Volunários](docs/images/08.voluntarios.png)
+![Doações](docs/images/09.doacoes.png)
+
+
 
 ---
 
@@ -87,5 +89,6 @@ O **Porto Seguro Pet** oferece uma plataforma web única e centralizada que inte
 * **Resultado esperado:** Acompanhamento transparente de todas as etapas da adoção em tempo real e autonomia para manter dados e senha atualizados.
 
 
-![Portal do Tutor e Adotante](docs/images/08-portal-tutor.png)
+![TelaInicialTutor](docs/images/10.telaTutorInicial.png)
+![TelaTutorPosAdocao](docs/images/11.telaTutorPosAdocao.png)
 
