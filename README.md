@@ -53,7 +53,7 @@ O **Porto Seguro Pet** oferece uma plataforma web única e centralizada que inte
 * **Resultado esperado:** O animal é cadastrado e exibido na listagem com o status atualizado.
 
 ![Gestão de Animais](docs/images/03.gestaoDeAnimais.png)
-![Gestão de Animais](docs/images/3.1animal%20cadastrado.png)
+![Gestão de Animais](docs/images/3.1animal%20cadastrado.png.png)
 
 #### 3 Lares Temporários (`/lares-temporarios`)
 * **Ações:** Cadastre lares parceiros com capacidade de vaga e vincule animais informando a data de entrada (e data de saída ao encerrar o acolhimento).
