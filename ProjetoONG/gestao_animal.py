@@ -237,17 +237,26 @@ class AnimalState(rx.State):
     url_foto_expandida: str = ""
 
     # ---- Métodos Auxiliares HTTP ----
-    def _headers(self) -> dict[str, str]:
-        return {"Authorization": f"Bearer {self.token}"}
+    async def _obter_token(self) -> str:
+        """Garante que o token de autenticação seja obtido do LoginState."""
+        from ProjetoONG.ProjetoONG import LoginState
+        login_state = await self.get_state(LoginState)
+        if login_state.token:
+            self.token = login_state.token
+        return self.token
 
     async def _buscar_animais(self) -> str:
         """Busca os animais cadastrados no Xano via API."""
         if not XANO_ANIMAL_LIST_URL:
             return "A URL de listagem não está configurada (XANO_ANIMAL_LIST_URL)."
+
+        token = await self._obter_token()
+        headers = {"Authorization": f"Bearer {token}"} if token else {}
+
         try:
             async with httpx.AsyncClient(timeout=20.0) as cliente:
                 resposta = await cliente.get(
-                    XANO_ANIMAL_LIST_URL, headers=self._headers()
+                    XANO_ANIMAL_LIST_URL, headers=headers
                 )
         except httpx.RequestError as erro:
             print(f"Falha de conexão ao listar animais: {type(erro).__name__}")
@@ -275,24 +284,36 @@ class AnimalState(rx.State):
         """Executa requisições de alteração (POST, PATCH, DELETE)."""
         if not url:
             return "URL não configurada no arquivo .env."
+
+        token = await self._obter_token()
+        if not token:
+            return "Sessão expirada. Faça login novamente."
+
         try:
             async with httpx.AsyncClient(timeout=20.0) as cliente:
                 resposta = await cliente.request(
-                    metodo, url, json=corpo, headers=self._headers()
+                    metodo,
+                    url,
+                    json=corpo,
+                    headers={"Authorization": f"Bearer {token}"},
                 )
-        except httpx.RequestError as erro:
+        except httpx.RequestError:
             return "Falha de conexão com o servidor."
 
         if resposta.status_code in (401, 403):
+            print(f"--- ERRO XANO ({resposta.status_code}) em {metodo} {url} ---")
+            print(f"Resposta: {resposta.text}")
             return "Sessão expirada. Faça login novamente."
         if resposta.status_code not in (200, 201, 204):
+            print(f"--- ERRO XANO ({resposta.status_code}) em {metodo} {url} ---")
+            print(f"Resposta: {resposta.text}")
             return f"O servidor recusou a operação (HTTP {resposta.status_code})."
         return ""
 
     # ---- Eventos de Ação ----
     @rx.event
-    async def carregar(self, token: str):
-        self.token = token
+    async def carregar(self):
+        await self._obter_token()
         self.carregando = True
         self.erro_api = ""
         yield
@@ -819,7 +840,7 @@ def aviso_erro_api():
                 size="1",
                 variant="soft",
                 color_scheme="red",
-                on_click=AnimalState.carregar(AnimalState.token),
+                on_click=AnimalState.carregar,
             ),
             align="center",
             width="100%",
@@ -878,7 +899,12 @@ def dialogo_formulario():
     return rx.dialog.root(
         rx.dialog.content(
             rx.dialog.title(AnimalState.titulo_form),
-            rx.dialog.description("Preencha os dados do animal resgatado.", size="2", color=COR_SECUNDARIA, margin_bottom="16px"),
+            rx.dialog.description(
+                "Preencha os dados do animal resgatado.",
+                size="2",
+                color=COR_SECUNDARIA,
+                margin_bottom="16px",
+            ),
             rx.vstack(
                 rx.cond(
                     AnimalState.form_foto_url != "",
@@ -914,8 +940,8 @@ def dialogo_formulario():
                     campo("Qual é a espécie?", rx.input(placeholder="Ex.: Coelho, Ave...", value=AnimalState.form_especie_outro, on_change=AnimalState.set_form_especie_outro, size="3")),
                 ),
                 rx.grid(
-                    campo("Raça", rx.input(placeholder="Ex.: Poodle", value=AnimalState.form_raca, on_change=AnimalState.set_form_raca, size="3")),
-                    campo(ROTULO_IDADE, rx.input(type="number", min="0", placeholder=EXEMPLO_IDADE, value=AnimalState.form_idade, on_change=AnimalState.set_form_idade, size="3")),
+                    campo("Raça", rx.input(placeholder="Ex.: SRD / Caramelo", value=AnimalState.form_raca, on_change=AnimalState.set_form_raca, size="3")),
+                    campo(ROTULO_IDADE, rx.input(placeholder=EXEMPLO_IDADE, type="number", value=AnimalState.form_idade, on_change=AnimalState.set_form_idade, size="3")),
                     columns="2",
                     spacing="3",
                     width="100%",
@@ -927,79 +953,101 @@ def dialogo_formulario():
                     spacing="3",
                     width="100%",
                 ),
-                campo("Condição de saúde", rx.input(placeholder="Ex.: Saudável", value=AnimalState.form_condicao, on_change=AnimalState.set_form_condicao, size="3")),
-                campo("Descrição do animal", rx.text_area(placeholder="Descreva a personalidade do animal", value=AnimalState.form_descricao, on_change=AnimalState.set_form_descricao)),
-                rx.cond(AnimalState.erro_form != "", rx.callout(AnimalState.erro_form, icon="triangle-alert", color_scheme="red", size="1")),
-                spacing="4",
-                width="100%",
-            ),
-            rx.flex(
-                rx.dialog.close(rx.button("Cancelar", variant="soft", color_scheme="gray")),
-                rx.button(
-                    "Salvar",
-                    background=COR_PRINCIPAL,
-                    color="white",
-                    cursor="pointer",
-                    _hover={"background": COR_TERRACOTA_ESCURO},
-                    loading=AnimalState.salvando,
-                    on_click=AnimalState.salvar_animal,
+                campo("Condição de saúde", rx.input(placeholder="Descreva o estado de saúde atual", value=AnimalState.form_condicao, on_change=AnimalState.set_form_condicao, size="3")),
+                campo("Descrição do animal", rx.text_area(placeholder="Temperamento, histórico, observações...", value=AnimalState.form_descricao, on_change=AnimalState.set_form_descricao, rows="3")),
+                rx.cond(
+                    AnimalState.erro_form != "",
+                    rx.callout(
+                        AnimalState.erro_form,
+                        icon="triangle-alert",
+                        color_scheme="red",
+                        width="100%",
+                    ),
+                ),
+                rx.hstack(
+                    rx.spacer(),
+                    rx.dialog.close(
+                        rx.button(
+                            "Cancelar",
+                            variant="soft",
+                            color_scheme="gray",
+                            cursor="pointer",
+                        )
+                    ),
+                    rx.button(
+                        rx.cond(AnimalState.salvando, "Salvando...", "Salvar"),
+                        background=COR_PRINCIPAL,
+                        color="white",
+                        _hover={"background": COR_TERRACOTA_ESCURO},
+                        cursor="pointer",
+                        disabled=AnimalState.salvando,
+                        on_click=AnimalState.salvar_animal,
+                    ),
+                    spacing="3",
+                    width="100%",
+                    margin_top="8px",
                 ),
                 spacing="3",
-                justify="end",
-                margin_top="20px",
+                width="100%",
             ),
-            max_width="560px",
+            max_width="540px",
+            padding="24px",
         ),
         open=AnimalState.dialogo_form_aberto,
         on_open_change=AnimalState.set_dialogo_form_aberto,
     )
 
 
-def item_detalhe(rotulo: str, valor):
-    return rx.vstack(
-        rx.text(rotulo, size="1", color=COR_SECUNDARIA),
-        rx.text(valor, size="3", color=COR_TEXTO, weight="medium"),
-        spacing="0",
-        align="start",
-    )
-
-
 def dialogo_visualizacao():
     return rx.dialog.root(
         rx.dialog.content(
-            rx.hstack(
-                avatar_especie(AnimalState.animal_visto),
-                rx.vstack(
-                    rx.dialog.title(AnimalState.animal_visto["nome"], margin="0"),
-                    rx.text(AnimalState.animal_visto["codigo"], size="2", color=COR_SECUNDARIA),
-                    spacing="0",
-                    align="start",
+            rx.dialog.title(AnimalState.animal_visto["nome"]),
+            rx.dialog.description(
+                AnimalState.animal_visto["codigo"] + " · " + AnimalState.animal_visto["especie"],
+                size="2",
+                color=COR_SECUNDARIA,
+                margin_bottom="12px",
+            ),
+            rx.vstack(
+                rx.cond(
+                    AnimalState.animal_visto["foto_url"] != "",
+                    rx.image(
+                        src=AnimalState.animal_visto["foto_url"],
+                        width="100%",
+                        max_height="240px",
+                        object_fit="cover",
+                        border_radius="12px",
+                        cursor="pointer",
+                        on_click=AnimalState.expandir_foto(AnimalState.animal_visto["foto_url"]),
+                    ),
                 ),
-                rx.spacer(),
-                status_animal(AnimalState.animal_visto["status"]),
-                align="center",
+                rx.grid(
+                    rx.text("Raça: ", rx.text.strong(AnimalState.animal_visto["raca"])),
+                    rx.text("Sexo: ", rx.text.strong(AnimalState.animal_visto["sexo"])),
+                    rx.text("Porte: ", rx.text.strong(AnimalState.animal_visto["porte"])),
+                    rx.text("Idade: ", rx.text.strong(AnimalState.animal_visto["idade"])),
+                    rx.text("Resgate: ", rx.text.strong(AnimalState.animal_visto["resgate"])),
+                    rx.text("Status: ", rx.text.strong(AnimalState.animal_visto["status"])),
+                    columns="2",
+                    spacing="2",
+                    width="100%",
+                ),
+                rx.text("Condição de saúde: ", rx.text.strong(AnimalState.animal_visto["condicao_txt"])),
+                rx.text("Descrição: ", AnimalState.animal_visto["descricao"]),
+                rx.hstack(
+                    rx.spacer(),
+                    rx.dialog.close(
+                        rx.button("Fechar", background=COR_PRINCIPAL, color="white", cursor="pointer")
+                    ),
+                    width="100%",
+                    margin_top="12px",
+                ),
+                align="start",
+                spacing="3",
                 width="100%",
-                margin_bottom="16px",
             ),
-            rx.grid(
-                item_detalhe("Espécie", AnimalState.animal_visto["especie"]),
-                item_detalhe("Sexo", AnimalState.animal_visto["sexo"]),
-                item_detalhe("Raça", AnimalState.animal_visto["raca"]),
-                item_detalhe("Porte", AnimalState.animal_visto["porte"]),
-                item_detalhe("Idade estimada", AnimalState.animal_visto["idade"]),
-                item_detalhe("Data do resgate", AnimalState.animal_visto["resgate"]),
-                item_detalhe("Condição de saúde", AnimalState.animal_visto["condicao_txt"]),
-                item_detalhe("Descrição", AnimalState.animal_visto["descricao"]),
-                columns="2",
-                spacing="4",
-                width="100%",
-            ),
-            rx.flex(
-                rx.dialog.close(rx.button("Fechar", variant="soft", color_scheme="gray")),
-                justify="end",
-                margin_top="20px",
-            ),
-            max_width="480px",
+            max_width="500px",
+            padding="24px",
         ),
         open=AnimalState.dialogo_ver_aberto,
         on_open_change=AnimalState.set_dialogo_ver_aberto,
@@ -1009,191 +1057,205 @@ def dialogo_visualizacao():
 def dialogo_exclusao():
     return rx.alert_dialog.root(
         rx.alert_dialog.content(
-            rx.alert_dialog.title("Excluir animal"),
+            rx.alert_dialog.title("Confirmar exclusão"),
             rx.alert_dialog.description(
-                "Tem certeza que deseja excluir ",
-                rx.text(AnimalState.nome_excluir, as_="span", weight="bold"),
-                "? Essa ação não pode ser desfeita.",
+                f"Tem certeza que deseja remover {AnimalState.nome_excluir}? Essa ação não poderá ser desfeita.",
+                size="2",
             ),
-            rx.flex(
-                rx.alert_dialog.cancel(rx.button("Cancelar", variant="soft", color_scheme="gray")),
+            rx.hstack(
+                rx.spacer(),
+                rx.alert_dialog.cancel(
+                    rx.button("Cancelar", variant="soft", color_scheme="gray", cursor="pointer")
+                ),
                 rx.alert_dialog.action(
-                    rx.button("Excluir", color_scheme="red", loading=AnimalState.salvando, on_click=AnimalState.confirmar_exclusao)
+                    rx.button(
+                        rx.cond(AnimalState.salvando, "Removendo...", "Excluir"),
+                        color_scheme="red",
+                        cursor="pointer",
+                        disabled=AnimalState.salvando,
+                        on_click=AnimalState.confirmar_exclusao,
+                    )
                 ),
                 spacing="3",
-                justify="end",
                 margin_top="16px",
+                width="100%",
             ),
-            max_width="440px",
+            max_width="420px",
         ),
         open=AnimalState.dialogo_excluir_aberto,
         on_open_change=AnimalState.set_dialogo_excluir_aberto,
     )
 
 
-def dialogo_foto_expandida():
-    """Modal para visualizar a imagem do pet em tamanho expandido."""
+def dialogo_foto():
     return rx.dialog.root(
         rx.dialog.content(
             rx.vstack(
-                rx.hstack(
-                    rx.dialog.title("Visualização da Foto", size="4"),
-                    rx.spacer(),
-                    rx.dialog.close(
-                        rx.icon_button(rx.icon("x", size=18), variant="ghost", color_scheme="gray")
-                    ),
-                    width="100%",
-                    align="center",
-                ),
                 rx.image(
                     src=AnimalState.url_foto_expandida,
                     width="100%",
-                    max_height="70vh",
+                    max_height="75vh",
                     object_fit="contain",
                     border_radius="12px",
                 ),
-                align="center",
+                rx.dialog.close(
+                    rx.button("Fechar", variant="soft", color_scheme="gray", cursor="pointer")
+                ),
+                align="end",
                 spacing="3",
-                width="100%",
             ),
-            max_width="600px",
-            padding="20px",
+            max_width="680px",
+            padding="16px",
         ),
         open=AnimalState.dialogo_foto_aberto,
         on_open_change=AnimalState.set_dialogo_foto_aberto,
     )
 
 
-# ==============================================================================
-# COMPONENTE PRINCIPAL DA TELA DE GESTÃO DE ANIMAIS
-# ==============================================================================
-def gestao_animal(token) -> rx.Component:
-    """Função principal importada no arquivo de rotas (ProjetoONG.py)."""
+def gestao_animal(token: str = "") -> rx.Component:
     return rx.vstack(
-        rx.vstack(
-            rx.heading("Gestão de Animais", size="8", color=COR_TEXTO),
-            rx.text("Organize os cadastros e acompanhe cada animal resgatado.", color=COR_SECUNDARIA, font_size="16px"),
-            align="start",
-            spacing="2",
-            width="100%",
-        ),
-        rx.cond(AnimalState.erro_api != "", aviso_erro_api()),
-        rx.grid(
-            cartao_resumo("Total", AnimalState.total, "Animais cadastrados", "paw-print", COR_PRINCIPAL, "#FCF2ED"),
-            cartao_resumo("Cães", AnimalState.qtd_caes, "Cadastrados na ONG", "dog", "#62663B", "#E5E6CF"),
-            cartao_resumo("Gatos", AnimalState.qtd_gatos, "Cadastrados na ONG", "cat", COR_PRINCIPAL, "#F8E7DF"),
-            cartao_resumo("Resgates recentes", AnimalState.qtd_recentes, "Nos últimos 30 dias", "calendar-check", "#506B4B", "#DCE5D5"),
-            columns=rx.breakpoints(initial="1", sm="2", lg="4"),
-            spacing="3",
-            width="100%",
-        ),
+        # Cabeçalho
         rx.hstack(
+            rx.vstack(
+                rx.heading("Gestão de Animais", size="7", color=COR_TEXTO),
+                rx.text("Organize os cadastros e acompanhe os animais resgatados.", color=COR_SECUNDARIA, size="3"),
+                spacing="1",
+                align="start",
+            ),
             rx.spacer(),
             rx.button(
                 rx.icon("plus", size=18),
                 "Cadastrar animal",
                 background=COR_PRINCIPAL,
                 color="white",
-                size="3",
-                border_radius="10px",
-                cursor="pointer",
                 _hover={"background": COR_TERRACOTA_ESCURO},
+                cursor="pointer",
+                size="3",
                 on_click=AnimalState.abrir_cadastro,
             ),
             width="100%",
             align="center",
         ),
-        rx.vstack(
-            rx.hstack(
-                rx.vstack(
-                    rx.heading("Animais cadastrados", size="5", color=COR_TERRACOTA_ABERTO),
-                    rx.text("Consulte os registros da ONG.", font_size="16px", color=COR_SECUNDARIA),
-                    align="start",
-                    spacing="1",
-                ),
-                rx.spacer(),
-                rx.tooltip(
+
+        # Cartões de Resumo
+        rx.grid(
+            cartao_resumo("Total", AnimalState.total, "Animais cadastrados", "paw-print", COR_PRINCIPAL, "#F5E7DF"),
+            cartao_resumo("Cães", AnimalState.qtd_caes, "Cães registrados na ONG", "dog", COR_PRINCIPAL, "#EFE6DA"),
+            cartao_resumo("Gatos", AnimalState.qtd_gatos, "Gatos registrados na ONG", "cat", "#737747", "#E5E6CF"),
+            cartao_resumo("Resgates recentes", AnimalState.qtd_recentes, "Nos últimos 30 dias", "calendar", "#737747", "#E5E6CF"),
+            columns={"initial": "1", "sm": "2", "lg": "4"},
+            spacing="4",
+            width="100%",
+        ),
+
+        # Card Principal da Tabela
+        rx.box(
+            rx.vstack(
+                rx.hstack(
+                    rx.vstack(
+                        rx.heading("Animais cadastrados", size="5", color=COR_TERRACOTA_ABERTO),
+                        rx.text("Consulte os registros da ONG.", color=COR_SECUNDARIA, size="2"),
+                        spacing="0",
+                        align="start",
+                    ),
+                    rx.spacer(),
                     rx.icon_button(
                         rx.icon("refresh-cw", size=16),
                         variant="soft",
                         color_scheme="gray",
-                        size="2",
-                        loading=AnimalState.carregando,
-                        on_click=AnimalState.carregar(AnimalState.token),
+                        cursor="pointer",
+                        on_click=AnimalState.carregar,
                     ),
-                    content="Atualizar lista",
+                    rx.badge(f"{AnimalState.total_filtrado} registros", variant="soft", color_scheme="gray", size="2"),
+                    width="100%",
+                    align="center",
                 ),
-                rx.badge(
-                    AnimalState.total_filtrado.to_string() + " registros",
-                    background=COR_DESTAQUE_ABERTO,
-                    color=COR_TERRACOTA_ABERTO,
-                    padding="8px 12px",
-                    font_size="15px",
+
+                # Barra de Busca e Filtros
+                rx.flex(
+                    rx.input(
+                        rx.input.slot(rx.icon("search", size=16)),
+                        placeholder="Buscar por nome ou código...",
+                        value=AnimalState.busca,
+                        on_change=AnimalState.set_busca,
+                        flex="1",
+                        min_width="220px",
+                    ),
+                    rx.select(
+                        [TODAS_ESPECIES] + ESPECIES,
+                        value=AnimalState.filtro_especie,
+                        on_change=AnimalState.set_filtro_especie,
+                    ),
+                    rx.select(
+                        [TODOS_PORTES] + PORTES,
+                        value=AnimalState.filtro_porte,
+                        on_change=AnimalState.set_filtro_porte,
+                    ),
+                    rx.select(
+                        AnimalState.opcoes_status,
+                        value=AnimalState.filtro_status,
+                        on_change=AnimalState.set_filtro_status,
+                    ),
+                    rx.cond(
+                        AnimalState.tem_filtro,
+                        rx.button("Limpar", variant="ghost", color=COR_PRINCIPAL, on_click=AnimalState.limpar_filtros),
+                    ),
+                    gap="3",
+                    wrap="wrap",
+                    width="100%",
                 ),
-                width="100%",
-                align="center",
-                wrap="wrap",
-                spacing="3",
-            ),
-            rx.hstack(
-                rx.input(
-                    rx.input.slot(rx.icon("search", size=16)),
-                    placeholder="Buscar por nome ou código...",
-                    value=AnimalState.busca,
-                    on_change=AnimalState.set_busca,
-                    size="3",
-                    flex="1",
-                    min_width="220px",
-                ),
-                rx.select([TODAS_ESPECIES] + ESPECIES, value=AnimalState.filtro_especie, on_change=AnimalState.set_filtro_especie, size="3"),
-                rx.select([TODOS_PORTES] + PORTES, value=AnimalState.filtro_porte, on_change=AnimalState.set_filtro_porte, size="3"),
-                rx.select(AnimalState.opcoes_status, value=AnimalState.filtro_status, on_change=AnimalState.set_filtro_status, size="3"),
+
+                rx.cond(AnimalState.erro_api != "", aviso_erro_api()),
+
                 rx.cond(
-                    AnimalState.tem_filtro,
-                    rx.button(rx.icon("x", size=16), "Limpar", variant="ghost", color_scheme="gray", size="3", on_click=AnimalState.limpar_filtros),
+                    AnimalState.carregando,
+                    estado_carregando(),
+                    rx.cond(
+                        AnimalState.total_filtrado == 0,
+                        estado_vazio(),
+                        tabela_animais(),
+                    ),
                 ),
-                width="100%",
-                spacing="3",
-                align="center",
-                wrap="wrap",
-            ),
-            rx.cond(
-                AnimalState.carregando,
-                estado_carregando(),
-                rx.cond(
-                    AnimalState.total_filtrado == 0,
-                    estado_vazio(),
-                    tabela_animais(),
+
+                # Rodapé de Paginação
+                rx.hstack(
+                    rx.text(AnimalState.texto_exibicao, size="2", color=COR_SECUNDARIA),
+                    rx.spacer(),
+                    rx.button(
+                        "Anterior",
+                        variant="outline",
+                        size="2",
+                        disabled=AnimalState.pagina <= 1,
+                        on_click=AnimalState.pagina_anterior,
+                    ),
+                    rx.text(f"Página {AnimalState.pagina} de {AnimalState.total_paginas}", size="2", color=COR_TEXTO),
+                    rx.button(
+                        "Próxima",
+                        variant="outline",
+                        size="2",
+                        disabled=AnimalState.pagina >= AnimalState.total_paginas,
+                        on_click=AnimalState.pagina_seguinte,
+                    ),
+                    width="100%",
+                    align="center",
                 ),
-            ),
-            rx.hstack(
-                rx.text(AnimalState.texto_exibicao, color=COR_SECUNDARIA, font_size="16px"),
-                rx.spacer(),
-                rx.text("Página " + AnimalState.pagina.to_string() + " de " + AnimalState.total_paginas.to_string(), color=COR_SECUNDARIA, font_size="16px"),
-                rx.button("Anterior", variant="outline", color_scheme="gray", size="2", disabled=AnimalState.pagina <= 1, on_click=AnimalState.pagina_anterior),
-                rx.button("Próxima", variant="outline", color_scheme="gray", size="2", disabled=AnimalState.pagina >= AnimalState.total_paginas, on_click=AnimalState.pagina_seguinte),
+                spacing="4",
                 width="100%",
-                align="center",
-                wrap="wrap",
-                spacing="3",
             ),
-            padding="20px",
             background="white",
+            padding="24px",
+            border_radius="18px",
             border=f"1px solid {COR_BORDA}",
-            border_radius="16px",
-            spacing="4",
             width="100%",
         ),
+
+        # Modais
         dialogo_formulario(),
         dialogo_visualizacao(),
         dialogo_exclusao(),
-        dialogo_foto_expandida(),
+        dialogo_foto(),
+
+        spacing="5",
         width="100%",
-        max_width="1400px",
-        padding="28px",
-        spacing="6",
-        align="stretch",
-        background=COR_FUNDO,
-        min_height="100%",
-        on_mount=AnimalState.carregar(token),
+        on_mount=AnimalState.carregar,
     )
